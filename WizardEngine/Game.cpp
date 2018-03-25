@@ -52,6 +52,7 @@ Game::~Game()
 	//delete Crate;
 	//delete crateMat;
 	delete Cam;
+	delete player;
 
 
 	if (sampler) { sampler->Release(); sampler = 0; }
@@ -87,6 +88,7 @@ void Game::Init()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Cam = new Camera(width, height);
+	player = new Player(Cam);
 }
 
 // --------------------------------------------------------
@@ -198,6 +200,7 @@ void Game::Update(float deltaTime, float totalTime)
 		Quit();
 
 	Cam->Update(deltaTime, totalTime);
+	player->Update(deltaTime);
 	
 }
 

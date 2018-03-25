@@ -83,6 +83,11 @@ Camera * Camera::SetPosition(XMFLOAT3 position)
 	this->position = position;
 	return this;
 }
+Camera * Camera::SetMoveSpeed(float moveSpeed)
+{
+	this->cameraMovementSpeed = moveSpeed;
+	return this;
+}
 #pragma endregion
 
 Camera * Camera::Update(float deltaTime, float totalTime)
@@ -104,11 +109,15 @@ Camera * Camera::Update(float deltaTime, float totalTime)
 
 	//Movement forward and back along direction vector
 	if (GetAsyncKeyState('W') & 0x8000) {
-		XMStoreFloat3(&position, XMVectorAdd(cameraPositionVector, cameraDirectionVector));
+		XMVECTOR temp = cameraDirectionVector;
+		temp = XMVectorSetY(temp, 0);
+		XMStoreFloat3(&position, XMVectorAdd(cameraPositionVector, temp));
 		outdatedMatrix = true;
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		XMStoreFloat3(&position, XMVectorSubtract(cameraPositionVector, cameraDirectionVector));
+		XMVECTOR temp = cameraDirectionVector;
+		temp = XMVectorSetY(temp, 0);
+		XMStoreFloat3(&position, XMVectorSubtract(cameraPositionVector, temp));
 		outdatedMatrix = true;
 	}
 

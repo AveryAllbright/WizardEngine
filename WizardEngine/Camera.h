@@ -16,6 +16,7 @@ public:
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 
 	Camera* SetPosition(DirectX::XMFLOAT3 position);
+	Camera* SetMoveSpeed(float moveSpeed);
 
 	Camera* Update(float deltaTime, float totalTime);
 	Camera* OnMouseMove(int prex, int prey, int x, int y);
