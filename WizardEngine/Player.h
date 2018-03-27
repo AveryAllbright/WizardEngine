@@ -2,6 +2,8 @@
 
 #include "Camera.h"
 #include <DirectXMath.h>
+#include "Entity.h"
+#include "DXCore.h"
 
 class Player
 {
@@ -28,10 +30,44 @@ private:
 
 	float m_fMoveSpeed;
 
+	enum spellToCast
+	{
+		spellOne,
+		spellTwo,
+		spellThree
+	};
+
+	spellToCast spellReady;
+
+	float cooldown;
+
+	bool m_Casting;
+
+	Mesh* meshSpellOne;
+	Mesh* meshSpellTwo;
+	Mesh* meshSpellThree;
+
+	Material* matSpellOne;
+	Material* matSpellTwo;
+	Material* matSpellThree;
+
+	ID3D11ShaderResourceView* spellOneTexture;
+
+	ID3D11SamplerState* Sampler;
+
 
 public:
-	Player(Camera* a_Camera);
+	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader);
 	~Player();
 	void Update(float delt);
+
+	void SpellOne();
+	Entity* EntitiesOne;
+
+	void SpellTwo();
+	Entity* EntitiesTwo;
+
+	void SpellThree();
+	Entity* EntitiesThree;
 };
 

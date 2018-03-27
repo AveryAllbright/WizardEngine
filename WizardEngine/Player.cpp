@@ -3,7 +3,7 @@
 
 using namespace DirectX;
 
-Player::Player(Camera* a_Camera)
+Player::Player(Camera* a_Camera, ID3D11Device* device)
 {
 	m_Camera = a_Camera; 
 
@@ -20,16 +20,48 @@ Player::Player(Camera* a_Camera)
 	m_fStickToGroundForce = 9.81f;
 	m_fGravityMult = 1.f;
 
+	m_Casting = false;
+	cooldown = 0;
+	spellReady = spellOne;
+	
+	meshSpellOne = new Mesh("Models//melon.obj", );
+
 }
 
 
 Player::~Player()
 {
+	
 }
 
 void Player::Update(float delt)
 {
 	m_vPos = m_Camera->GetPosition();
+
+	if (!m_Casting && cooldown <= 0)
+	{
+		m_Casting = (GetKeyState(VK_LBUTTON) & 0x100);
+	}
+	
+	if (m_Casting) {
+		switch(spellReady)
+		{
+		case spellOne: SpellOne();
+			break;
+		case spellTwo: SpellTwo();
+			break;
+		case spellThree: SpellThree();
+			break;
+			
+		}
+		m_Casting = false;
+		cooldown = .5;
+	}
+
+	if (cooldown > 0) 
+	{
+		cooldown -= delt;
+	}
 
 	if (!m_bJump)
 	{
@@ -96,6 +128,19 @@ void Player::Update(float delt)
 
 	m_bPreviouslyGrounded = m_bGrounded;
 
-	std::cout << m_vPos.x;
 
+
+}
+
+void Player::SpellOne()
+{
+	
+}
+
+void Player::SpellTwo()
+{
+}
+
+void Player::SpellThree()
+{
 }

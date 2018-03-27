@@ -88,7 +88,7 @@ void Game::Init()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Cam = new Camera(width, height);
-	player = new Player(Cam);
+	player = new Player(Cam, device,context, vertexShader, pixelShader);
 }
 
 // --------------------------------------------------------
