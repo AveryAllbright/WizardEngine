@@ -96,7 +96,7 @@ void Game::Init()
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	CreateDDSTextureFromFile(device, L"SunnyCubeMap.dds", 0, &skySRV);
+	CreateDDSTextureFromFile(device, L"..//..//Assets//Textures//SunnyCubeMap.dds", 0, &skySRV);
 
 	D3D11_RASTERIZER_DESC rs = {};
 	rs.FillMode = D3D11_FILL_SOLID;
@@ -177,7 +177,7 @@ void Game::CreateBasicGeometry()
 	XMFLOAT3 standScale = XMFLOAT3(1, 1, 1);
 	
 
-	CreateWICTextureFromFile(device, context, L"Models/melon.tif", 0, &melonTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
 	
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -192,10 +192,10 @@ void Game::CreateBasicGeometry()
 	melonMat = new Material(vertexShader, pixelShader, melonTexture, sampler);
 	//crateMat = new Material(vertexShader, pixelShader, crateTexture, sampler);
 
-	Melon = new Mesh("Models//melon.obj", device);
+	Melon = new Mesh("..//..//Assets//Models//melon.obj", device);
 	//Crate = new Mesh("Models//cube.obj", device);
 	
-	skyCube = new Mesh("Models//cube.obj", device);
+	skyCube = new Mesh("..//..//Assets//Models//cube.obj", device);
 	
 	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
 	//Entities.push_back(Entity(Crate, crateMat, worldMatrix, XMFLOAT3(5, 0, 0), standRot, standScale));

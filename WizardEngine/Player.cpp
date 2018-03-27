@@ -24,7 +24,11 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	spellReady = spellOne;
 	
+<<<<<<< HEAD
 	meshSpellOne = new Mesh("Models//melon.obj", device);
+=======
+	meshSpellOne = new Mesh("..//..//Assets//Models//melon.obj", device);
+>>>>>>> e781e6c136270ff65376301b26b2bf7e2e5b6b93
 
 }
 
