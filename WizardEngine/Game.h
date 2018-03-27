@@ -39,6 +39,8 @@ private:
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+	SimpleVertexShader* skyVS;
+	SimplePixelShader* skyPS;
 
 	SimpleSRV* srv;
 
@@ -54,15 +56,18 @@ private:
 	std::vector<Entity> Entities;
 	
 	Mesh* Melon;
-	//Mesh* Crate;
+	Mesh* skyCube;
 	
 	ID3D11ShaderResourceView* melonTexture;
-	//ID3D11ShaderResourceView* crateTexture;
+	ID3D11ShaderResourceView* skySRV;
+
+	ID3D11RasterizerState* skyRast;
+	ID3D11DepthStencilState* skyDepth;
 
 	ID3D11SamplerState* sampler;
 	
 	Material* melonMat;
-	//Material* crateMat;
+	
 
 	Camera* Cam;
 	Player* player;

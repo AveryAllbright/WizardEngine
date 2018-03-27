@@ -1,5 +1,7 @@
 #include "Game.h"
 #include "Vertex.h"
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -46,13 +48,19 @@ Game::~Game()
 	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
+	delete skyVS;
+	delete skyPS;
 	delete pixelShader;
 	delete Melon;
 	delete melonMat;
-	//delete Crate;
-	//delete crateMat;
+	delete skyCube;
 	delete Cam;
 	delete player;
+
+	skySRV->Release();
+	skyDepth->Release();
+	skyRast->Release();
+
 
 
 	if (sampler) { sampler->Release(); sampler = 0; }
@@ -87,6 +95,19 @@ void Game::Init()
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	CreateDDSTextureFromFile(device, L"SunnyCubeMap.dds", 0, &skySRV);
+
+	D3D11_RASTERIZER_DESC rs = {};
+	rs.FillMode = D3D11_FILL_SOLID;
+	rs.CullMode = D3D11_CULL_FRONT;
+	device->CreateRasterizerState(&rs, &skyRast);
+
+	D3D11_DEPTH_STENCIL_DESC ds = {}; 
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&ds, &skyDepth);
+
 	Cam = new Camera(width, height);
 	player = new Player(Cam, device,context, vertexShader, pixelShader);
 }
@@ -104,6 +125,14 @@ void Game::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	skyVS = new SimpleVertexShader(device, context);
+	bool test = skyVS->LoadShaderFile(L"SkyVS.cso");
+
+	test;
+
+	skyPS = new SimplePixelShader(device, context);
+	skyPS->LoadShaderFile(L"SkyPS.cso");
 }
 
 // --------------------------------------------------------
@@ -148,8 +177,7 @@ void Game::CreateBasicGeometry()
 	
 
 	CreateWICTextureFromFile(device, context, L"Models/melon.tif", 0, &melonTexture);
-	//CreateWICTextureFromFile(device, context, L"Models/crate.png", 0, &crateTexture);
-
+	
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -166,6 +194,7 @@ void Game::CreateBasicGeometry()
 	Melon = new Mesh("Models//melon.obj", device);
 	//Crate = new Mesh("Models//cube.obj", device);
 	
+	skyCube = new Mesh("Models//cube.obj", device);
 	
 	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
 	//Entities.push_back(Entity(Crate, crateMat, worldMatrix, XMFLOAT3(5, 0, 0), standRot, standScale));
@@ -222,9 +251,15 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
 	ID3D11Buffer* vert;
 
 	TopLight.DiffuseColour.x -= sin(deltaTime / 6);
+
+	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
+	pixelShader->SetSamplerState("BasicSampler", sampler);
 
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
@@ -240,9 +275,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		pixelShader->CopyAllBufferData();
 
-		// Set buffers in the input assembler
-		//  - Do this ONCE PER OBJECT you're drawing, since each object might
-		//    have different geometry.
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
@@ -256,10 +288,29 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
+
+	ID3D11Buffer* skyVB = skyCube->GetVertexBuffer();
+	ID3D11Buffer* skyIB = skyCube->GetIndexBuffer();
+
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+	skyVS->SetMatrix4x4("view", Cam->GetViewMatrix());
+	skyVS->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+	skyVS->CopyAllBufferData();
+	skyVS->SetShader();
 	
-	// Present the back buffer to the user
-	//  - Puts the final frame we're drawing into the window so the user can see it
-	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
+	skyPS->SetShaderResourceView("SkyTexture", skySRV);
+	skyPS->SetSamplerState("BasicSampler", sampler);
+	skyPS->SetShader();
+
+	context->RSSetState(skyRast);
+	context->OMSetDepthStencilState(skyDepth, 0);
+	context->DrawIndexed(skyCube->GetIndexCount(), 0, 0);
+
+	context->RSSetState(0);
+	context->OMGetDepthStencilState(0, 0);
+	
 	swapChain->Present(0, 0);
 }
 
