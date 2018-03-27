@@ -41,18 +41,21 @@ void Player::Update(float delt)
 	m_fMoveSpeed = m_bIsWalking ? m_fWalkSpeed : m_fRunSpeed;
 	m_Camera->SetMoveSpeed(m_fMoveSpeed);
 
-	if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true; }
+	if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
 
-	if (!m_bPreviouslyGrounded && m_bGrounded)
+  	if (!m_bPreviouslyGrounded && m_bGrounded)
 	{
 		m_vMoveDir.y = 0;
 		m_Jumping = false;
+		m_bJump = false;
 	}
 
 	if (!m_bGrounded && !m_Jumping && m_bPreviouslyGrounded)
 	{
 		m_vMoveDir.y = 0;
 	}
+
+	
 
 	if (m_bGrounded)
 	{
@@ -71,6 +74,8 @@ void Player::Update(float delt)
 		m_vMoveDir.y += -.00981f * m_fGravityMult * delt;
 	}
 
+	
+
 	if (m_vMoveDir.y != 0)
 	{
 		XMVECTOR pos;
@@ -86,6 +91,8 @@ void Player::Update(float delt)
 		m_Camera->SetPosition(temp);
 		
 	}
+
+	
 
 	m_bPreviouslyGrounded = m_bGrounded;
 
