@@ -3,7 +3,7 @@
 
 using namespace DirectX;
 
-Player::Player(Camera* a_Camera, ID3D11Device* device)
+Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader)
 {
 	m_Camera = a_Camera; 
 
@@ -24,7 +24,7 @@ Player::Player(Camera* a_Camera, ID3D11Device* device)
 	cooldown = 0;
 	spellReady = spellOne;
 	
-	meshSpellOne = new Mesh("Models//melon.obj", );
+	meshSpellOne = new Mesh("Models//melon.obj", device);
 
 }
 
