@@ -1,4 +1,6 @@
 #pragma once
+class Component;
+#include "Object.h"
 #include "Mesh.h"
 #include "Material.h"
 #include <DirectXMath.h>
@@ -6,7 +8,7 @@ using vec3 = DirectX::XMFLOAT3;
 using mat4 = DirectX::XMFLOAT4X4;
 
 
-class Entity
+class Entity : public Object
 {
 private:
 	
@@ -48,5 +50,23 @@ public:
 	void ScaleBy(DirectX::XMFLOAT3 a_vScale);
 
 	virtual ~Entity();
+
+	std::vector<Component*> components;
+
+	//provides accessor for getting components by type
+	//NOTE: only gets first of type
+	template<class T>
+	T* getComponent() {
+		for (unsigned int i = 0; i < components.size(); i++) {
+			T* type = dynamic_cast<T*>(components[i]);
+			if (type)
+				return type;
+		}
+		return nullptr;
+	}
+
+	Entity* AddComponent(Component* component);
+	virtual Entity* Start();
+	virtual bool Update(float deltaTime);
 };
 

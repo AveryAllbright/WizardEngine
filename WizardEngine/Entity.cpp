@@ -1,9 +1,34 @@
 #include "Entity.h"
+#include "Component.h"
 
 Entity::Entity(Mesh * a_pMesh, Material* a_pMaterial, DirectX::XMFLOAT4X4 a_mWorld, DirectX::XMFLOAT3 a_vPos, DirectX::XMFLOAT3 a_vRotation, DirectX::XMFLOAT3 a_vScale) : m_pMesh(a_pMesh), m_mWorld(a_mWorld),
 m_vPos(a_vPos), m_vRotation(a_vRotation), m_vScale(a_vScale), m_pMaterial(a_pMaterial)
 {
-	//Nothing TODO here
+	components = std::vector<Component*>();
+}
+
+Entity* Entity::AddComponent(Component* component) {
+	components.push_back(component);
+	component->setEntity(this);
+	return this;
+}
+
+Entity* Entity::Start() {
+	for (int i = 0; i < (int)components.size(); i++)
+		components[i]->Start();
+
+	return this;
+}
+
+bool Entity::Update(float deltaTime) {
+	//early return if not active
+	//returning bools lets child classes also early return
+	//if (!active) return false;
+
+	//update all components as well
+	for (int i = 0; i < (int)components.size(); i++)
+		components[i]->Update(deltaTime);
+	return true;
 }
 
 void Entity::SetRotation(DirectX::XMFLOAT3 a_vRotation) 
