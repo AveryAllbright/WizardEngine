@@ -91,10 +91,10 @@ HRESULT DXCore::InitWindow()
 	wndClass.cbWndExtra		= 0;
 	wndClass.hInstance		= hInstance;						// Our app's handle
 	wndClass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);	// Default icon
-	wndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		// Default arrow cursor
+	wndClass.hCursor		= LoadCursor(NULL, IDC_CROSS);		// Default arrow cursor
 	wndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName	= NULL;
-	wndClass.lpszClassName	= "Direct3DWindowClass";
+	wndClass.lpszClassName	= "GGP Wizards";
 
 	// Attempt to register the window class we've defined
 	if (!RegisterClass(&wndClass))
