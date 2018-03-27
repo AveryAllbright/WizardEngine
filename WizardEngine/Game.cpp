@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Vertex.h"
+//#include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
 
@@ -202,6 +203,11 @@ void Game::CreateBasicGeometry()
 	Entities[0].SetScale(XMFLOAT3(.125, .125, .125));
 
 	Entities[0].UpdateWorldView();
+	/*
+	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
+	Entities[0].AddComponent(melonCollider);
+	melonCollider->onCollisionEnterFunction = &Entity::HandleCollision;
+	*/
 	//Entities[1].UpdateWorldView();
 	
 }
