@@ -26,10 +26,12 @@ public:
 	float rotationXRadians;
 	float rotationYRadians;
 
+	DirectX::XMFLOAT3 GetForward();
+
 	void CreateProjection(int width, int height);
 private:
 	void CreateView(DirectX::XMVECTOR pos, DirectX::XMVECTOR dir);
-
+	DirectX::XMFLOAT3 forward;
 	// Internal Data
 	DirectX::XMFLOAT3 position;
 	bool outdatedMatrix;

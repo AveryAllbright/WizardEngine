@@ -203,6 +203,8 @@ void Game::CreateBasicGeometry()
 	Entities[0].SetScale(XMFLOAT3(.125, .125, .125));
 
 	Entities[0].UpdateWorldView();
+
+	
 	/*
 	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
 	Entities[0].AddComponent(melonCollider);
@@ -291,6 +293,34 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		context->DrawIndexed(
 			Entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
+	}
+
+	for (UINT i = 0; i < player->EntitiesOne.size(); i++)
+	{
+		
+		player->EntitiesOne[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+
+		pixelShader->SetSamplerState("basicSampler", sampler);
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i].GetMaterial()->GetSRV());
+
+		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
+
+		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
+
+		pixelShader->CopyAllBufferData();
+
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+
+		vert = player->EntitiesOne[i].GetMesh()->GetVertexBuffer();
+
+		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
+		context->IASetIndexBuffer(player->EntitiesOne[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+
+		context->DrawIndexed(
+			player->EntitiesOne[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
