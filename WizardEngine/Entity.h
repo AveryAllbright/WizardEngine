@@ -20,6 +20,7 @@ private:
 	DirectX::XMFLOAT3 m_vScale;
 	DirectX::XMFLOAT3 m_vPos;
 	DirectX::XMFLOAT4X4 m_mWorld;
+	DirectX::XMFLOAT3 m_velocity;
 	Mesh* m_pMesh;
 	Material* m_pMaterial;
 
@@ -43,6 +44,8 @@ public:
 	DirectX::XMFLOAT3 GetScale();
 	DirectX::XMFLOAT3 GetPos();
 	DirectX::XMFLOAT4X4 GetWorld();
+	DirectX::XMFLOAT3 GetVelocity();
+	void SetVelocity(DirectX::XMFLOAT3 toCopy);
 	Mesh* GetMesh();
 	Material* GetMaterial();
 

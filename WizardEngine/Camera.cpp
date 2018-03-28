@@ -30,6 +30,10 @@ Camera::~Camera() {}
 #pragma endregion
 
 #pragma region MatrixCreations
+DirectX::XMFLOAT3 Camera::GetForward()
+{
+	return forward;
+}
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -97,7 +101,7 @@ Camera * Camera::Update(float deltaTime, float totalTime)
 	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
 
 	XMVECTOR cameraDirectionVector = XMVector3Rotate(dir, rot);
-
+	DirectX::XMStoreFloat3(&forward, cameraDirectionVector);
 	cameraDirectionVector = XMVector4Normalize(cameraDirectionVector);
 	XMVECTOR cameraDirectionLeftVector = XMVector3Cross(cameraDirectionVector, XMVectorSet(0, 1, 0, 0));
 

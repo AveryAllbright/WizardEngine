@@ -82,6 +82,15 @@ DirectX::XMFLOAT4X4 Entity::GetWorld()
 	return m_mWorld;
 }
 
+DirectX::XMFLOAT3 Entity::GetVelocity()
+{
+	return m_velocity;
+}
+void Entity::SetVelocity(DirectX::XMFLOAT3 toCopy)
+{
+	m_velocity = toCopy;
+}
+
 Mesh * Entity::GetMesh()
 {
 	return m_pMesh;

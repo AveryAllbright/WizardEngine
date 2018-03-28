@@ -24,7 +24,23 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	spellReady = spellOne;
 	
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
+
+	D3D11_SAMPLER_DESC sd = {};
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd.MaxAnisotropy = 16;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sd, &Sampler);
+
+	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, Sampler);
+
 	meshSpellOne = new Mesh("..//..//Assets//Models//melon.obj", device);
+
+	entityOneSpeed = 1;
 
 }
 
@@ -123,7 +139,18 @@ void Player::Update(float delt)
 		m_Camera->SetPosition(temp);
 		
 	}
+	for (int j = 0; j < EntitiesOne.size(); j++) 
+	{
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j].GetPos());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j].GetVelocity());
+		vecTwo = DirectX::XMVectorScale(vecTwo, delt * entityOneSpeed);
+		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
+		XMFLOAT3 temp;
+		XMStoreFloat3(&temp, vecFinal);
 
+		EntitiesOne[j].SetPos(temp);
+		EntitiesOne[j].UpdateWorldView();
+	}
 	
 
 	m_bPreviouslyGrounded = m_bGrounded;
@@ -134,7 +161,10 @@ void Player::Update(float delt)
 
 void Player::SpellOne()
 {
-	
+	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
+	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)));
+	EntitiesOne[EntitiesOne.size() - 1].SetVelocity(m_Camera->GetForward());
+	EntitiesOne[EntitiesOne.size() - 1].UpdateWorldView();
 }
 
 void Player::SpellTwo()

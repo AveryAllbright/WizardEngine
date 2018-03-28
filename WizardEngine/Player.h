@@ -4,6 +4,7 @@
 #include <DirectXMath.h>
 #include "Entity.h"
 #include "DXCore.h"
+#include "WICTextureLoader.h"
 
 class Player
 {
@@ -55,6 +56,10 @@ private:
 
 	ID3D11SamplerState* Sampler;
 
+	DirectX::XMFLOAT4X4 world;
+
+	float entityOneSpeed;
+
 
 public:
 	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader);
@@ -62,12 +67,13 @@ public:
 	void Update(float delt);
 
 	void SpellOne();
-	Entity* EntitiesOne;
+	std::vector<Entity> EntitiesOne;
+	
 
 	void SpellTwo();
-	Entity* EntitiesTwo;
+	std::vector<Entity> EntitiesTwo;
 
 	void SpellThree();
-	Entity* EntitiesThree;
+	std::vector<Entity> EntitiesThree;
 };
 
