@@ -22,9 +22,10 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 
 	m_Casting = false;
 	cooldown = 0;
-	spellReady = spellOne;
+	m_nActiveSpell = 0;
 	
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &SpellTwoTexture);
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -37,11 +38,13 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	device->CreateSamplerState(&sd, &Sampler);
 
 	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, Sampler);
-
 	meshSpellOne = new Mesh("..//..//Assets//Models//melon.obj", device);
 
-	entityOneSpeed = 1;
+	matSpellTwo = new Material(vertexShader, pixelShader, SpellTwoTexture, Sampler);
+	meshSpellTwo = new Mesh("..//..//Assets//Models//melon.obj", device);
 
+	entityOneSpeed = 3.5;
+	wallRiseSpeed = 1.f;
 }
 
 
@@ -60,13 +63,13 @@ void Player::Update(float delt)
 	}
 	
 	if (m_Casting) {
-		switch(spellReady)
+		switch(m_nActiveSpell)
 		{
-		case spellOne: SpellOne();
+		case 0: SpellOne();
 			break;
-		case spellTwo: SpellTwo();
+		case 1: SpellTwo();
 			break;
-		case spellThree: SpellThree();
+		case 2: SpellThree();
 			break;
 			
 		}
@@ -151,7 +154,26 @@ void Player::Update(float delt)
 		EntitiesOne[j].SetPos(temp);
 		EntitiesOne[j].UpdateWorldView();
 	}
-	
+
+	for (int i = 0; i < EntitiesTwo.size(); i++)
+	{
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i].GetPos());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i].GetVelocity());
+		vecTwo = DirectX::XMVectorScale(vecTwo, delt * wallRiseSpeed);
+
+		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
+		XMFLOAT3 temp;
+		XMStoreFloat3(&temp, vecFinal);
+
+		EntitiesTwo[i].SetPos(temp);
+		EntitiesTwo[i].UpdateWorldView();
+
+		if (EntitiesTwo[i].GetPos().y > -1.75)
+		{
+			EntitiesTwo[i].SetVelocity(XMFLOAT3(0, 0, 0));
+		}
+	}
+
 
 	m_bPreviouslyGrounded = m_bGrounded;
 
@@ -162,15 +184,46 @@ void Player::Update(float delt)
 void Player::SpellOne()
 {
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)));
+	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(.125, .125, .125)));
 	EntitiesOne[EntitiesOne.size() - 1].SetVelocity(m_Camera->GetForward());
 	EntitiesOne[EntitiesOne.size() - 1].UpdateWorldView();
 }
 
 void Player::SpellTwo()
 {
+
+	XMVECTOR pos = XMLoadFloat3(&m_vPos);
+	XMVECTOR offset = XMVectorSet(0, -3, 0, 0);
+	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
+	displace = XMVectorScale(displace, 3);
+	displace = XMVectorSetIntY(displace, 0);
+	pos = XMVectorAdd(pos, offset);
+	pos = XMVectorAdd(pos, displace);
+	XMFLOAT3 offsetby;
+	XMStoreFloat3(&offsetby, pos);
+
+	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
+
+	EntitiesTwo.push_back(Entity(meshSpellTwo, matSpellTwo, world, offsetby, XMFLOAT3(0, 0, 0), XMFLOAT3(.10, .10, .10)));
+
+	EntitiesTwo[EntitiesTwo.size() - 1].SetVelocity(XMFLOAT3(0, wallRiseSpeed, 0));
+	EntitiesTwo[EntitiesTwo.size() - 1].UpdateWorldView();
 }
 
 void Player::SpellThree()
 {
+}
+
+void Player::SetActiveSpell(float input)
+{
+	if (input < 0)
+	{
+		m_nActiveSpell--;
+		if (m_nActiveSpell < 0) { m_nActiveSpell = m_nMaxSpell; }
+	}
+	else
+	{
+		m_nActiveSpell++;
+		if (m_nActiveSpell > m_nMaxSpell) { m_nActiveSpell = 0; }
+	}
 }

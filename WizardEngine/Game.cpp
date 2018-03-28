@@ -340,6 +340,34 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
+	for (UINT i = 0; i < player->EntitiesTwo.size(); i++)
+	{
+
+		player->EntitiesTwo[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+
+		pixelShader->SetSamplerState("basicSampler", sampler);
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i].GetMaterial()->GetSRV());
+
+		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
+
+		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
+
+		pixelShader->CopyAllBufferData();
+
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+
+		vert = player->EntitiesTwo[i].GetMesh()->GetVertexBuffer();
+
+		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
+		context->IASetIndexBuffer(player->EntitiesTwo[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+
+		context->DrawIndexed(
+			player->EntitiesTwo[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
+	}
+
 	ID3D11Buffer* skyVB = skyCube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = skyCube->GetIndexBuffer();
 
@@ -429,6 +457,6 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseWheel(float wheelDelta, int x, int y)
 {
-	// Add any custom code here...
+	player->SetActiveSpell(wheelDelta);
 }
 #pragma endregion

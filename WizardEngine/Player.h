@@ -31,14 +31,8 @@ private:
 
 	float m_fMoveSpeed;
 
-	enum spellToCast
-	{
-		spellOne,
-		spellTwo,
-		spellThree
-	};
-
-	spellToCast spellReady;
+	int m_nActiveSpell;
+	int m_nMaxSpell = 1;
 
 	float cooldown;
 
@@ -53,12 +47,14 @@ private:
 	Material* matSpellThree;
 
 	ID3D11ShaderResourceView* spellOneTexture;
+	ID3D11ShaderResourceView* SpellTwoTexture;
 
 	ID3D11SamplerState* Sampler;
 
 	DirectX::XMFLOAT4X4 world;
 
 	float entityOneSpeed;
+	float wallRiseSpeed;
 
 
 public:
@@ -75,5 +71,7 @@ public:
 
 	void SpellThree();
 	std::vector<Entity> EntitiesThree;
+
+	void SetActiveSpell(float input);
 };
 
