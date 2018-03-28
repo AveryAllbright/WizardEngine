@@ -1,5 +1,5 @@
 #pragma once
-class Entity;
+#include "Entity.h"
 #include "Object.h"
 
 class Component : public Object

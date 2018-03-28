@@ -1,8 +1,16 @@
 #pragma once
 #include "Collider.h"
+#include "Entity.h"
 #include <iostream>
 
-Collider::Collider() {}
+Collider::Collider() {
+	onCollisionEnterFunction = nullptr;
+		onCollisionExitFunction = nullptr;
+		onCollisionStayFunction = nullptr;
+		onTriggerEnterFunction = nullptr;
+		onTriggerExitFunction = nullptr;
+			onTriggerStayFunction = nullptr;
+}
 
 Collider::~Collider() {}
 

@@ -1,11 +1,13 @@
 #pragma once
 class Component;
+class Collider;
 #include "Object.h"
 #include "Mesh.h"
 #include "Material.h"
+
+
 #include <DirectXMath.h>
 
-//#include "Collider.h"
 using vec3 = DirectX::XMFLOAT3;
 using mat4 = DirectX::XMFLOAT4X4;
 
@@ -71,6 +73,6 @@ public:
 	virtual Entity* Start();
 	virtual bool Update(float deltaTime);
 
-	//static void HandleCollision(Collider*, Collider*);
+	static void HandleCollision(Collider*, Collider*);
 };
 

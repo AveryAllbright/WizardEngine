@@ -18,5 +18,10 @@ public:
 	ColliderBox(DirectX::XMFLOAT3 center, DirectX::XMFLOAT3 scale);
 	~ColliderBox();
 
+	ColliderBox* SetCenter(DirectX::XMFLOAT3 center);
+	ColliderBox* SetScale(DirectX::XMFLOAT3 scale);
+
+	//TODO getters
+
 	bool IsColliding(ColliderBox* a_other);
 };

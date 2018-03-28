@@ -5,6 +5,7 @@ ColliderBox::ColliderBox(DirectX::XMFLOAT3 center)
 	this->center = center;
 	this->scale = DirectX::XMFLOAT3(1, 1, 1);
 	calcMinsMaxs();
+	ColliderCollection.push_back(this);
 }
 
 ColliderBox::ColliderBox(DirectX::XMFLOAT3 center, DirectX::XMFLOAT3 scale)
@@ -12,9 +13,26 @@ ColliderBox::ColliderBox(DirectX::XMFLOAT3 center, DirectX::XMFLOAT3 scale)
 	this->center = center;
 	this->scale = scale;
 	calcMinsMaxs();
+	ColliderCollection.push_back(this);
 }
 
 ColliderBox::~ColliderBox() {}
+
+ColliderBox * ColliderBox::SetCenter(DirectX::XMFLOAT3 center)
+{
+	this->center = center;
+	calcMinsMaxs();
+	return this;
+}
+
+ColliderBox * ColliderBox::SetScale(DirectX::XMFLOAT3 scale)
+{
+	this->scale = scale;
+	calcMinsMaxs();
+	return this;
+}
+
+
 
 void ColliderBox::calcMinsMaxs() {
 	DirectX::XMVECTOR centerVector = DirectX::XMLoadFloat3(&center);
@@ -35,16 +53,16 @@ void ColliderBox::testCollision(Collider * other)
 bool ColliderBox::IsColliding(ColliderBox * other)
 {
 	// test x
-	if (maxs.x < other->maxs.x) return false;
-	if (mins.x > other->mins.x) return false;
+	if (maxs.x < other->mins.x) return false;
+	if (mins.x > other->maxs.x) return false;
 
 	// test y
-	if (maxs.y < other->maxs.y) return false;
-	if (mins.y > other->mins.y) return false;
+	if (maxs.y < other->mins.y) return false;
+	if (mins.y > other->maxs.y) return false;
 
 	//test z
-	if (maxs.z < other->maxs.z) return false;
-	if (mins.z > other->mins.z) return false;
+	if (maxs.z < other->mins.z) return false;
+	if (mins.z > other->maxs.z) return false;
 
 	return true;
 }

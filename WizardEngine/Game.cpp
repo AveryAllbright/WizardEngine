@@ -1,6 +1,6 @@
 #include "Game.h"
 #include "Vertex.h"
-//#include "ColliderBox.h"
+#include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
 
@@ -203,12 +203,21 @@ void Game::CreateBasicGeometry()
 	Entities[0].SetScale(XMFLOAT3(.125, .125, .125));
 
 	Entities[0].UpdateWorldView();
-	/*
+	
 	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
+	melonCollider->isTrigger = false;
 	Entities[0].AddComponent(melonCollider);
 	melonCollider->onCollisionEnterFunction = &Entity::HandleCollision;
-	*/
-	//Entities[1].UpdateWorldView();
+
+	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
+	
+	ColliderBox* melonCollider2 = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
+	melonCollider2->isTrigger = false;
+	Entities[1].AddComponent(melonCollider2);
+	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
+	Entities[1].SetScale(XMFLOAT3(.125, .125, .125));
+	
+	Entities[1].UpdateWorldView();
 	
 }
 
@@ -230,6 +239,14 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	DirectX::XMFLOAT3 e1pos = Entities[1].GetPos();
+	float speed = 10;
+	float change = sinf(totalTime * speed) * .02;
+	e1pos.x += change;
+	Entities[1].getComponent<ColliderBox>()->SetCenter(e1pos);
+	Entities[1].SetPos(e1pos);
+	Entities[1].UpdateWorldView();
+	Entities[1].Update(deltaTime);
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();

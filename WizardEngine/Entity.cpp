@@ -137,22 +137,10 @@ Entity::~Entity()
 {
 }
 
-/*
+
 void Entity::HandleCollision(Collider* mainobj, Collider* other)
 {
-	
-	DestructObj* me = static_cast<DestructObj*>(mainobj->getGameObject());
-
-	Projectile* castedOther = dynamic_cast<Projectile*>(other->getGameObject());
-	if (!castedOther) return;
-
-	me->health -= 10;
-
-	if (me->health <= 0) {
-		std::cout << "dead" << std::endl;
-		me->SetActive(false);
-	}
-	
+	printf("hi");
 }
-*/
+
 

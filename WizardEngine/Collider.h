@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Component.h"
-#include "Entity.h"
+class Entity;
 #include <vector>
 
 class Collider : public Component {
