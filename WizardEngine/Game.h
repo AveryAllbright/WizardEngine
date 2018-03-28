@@ -57,6 +57,7 @@ private:
 	
 	Mesh* Melon;
 	Mesh* skyCube;
+	Mesh* floor;
 	
 	ID3D11ShaderResourceView* melonTexture;
 	ID3D11ShaderResourceView* skySRV;
@@ -67,7 +68,8 @@ private:
 	ID3D11SamplerState* sampler;
 	
 	Material* melonMat;
-	
+	Material* floorMat;	
+
 
 	Camera* Cam;
 	Player* player;

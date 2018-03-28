@@ -15,7 +15,7 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_fWalkSpeed = 3.f;
 	m_fRunSpeed = 6.0f;
 
-	m_fJumpSpeed = .002f;
+	m_fJumpSpeed = .008f;
 
 	m_fStickToGroundForce = 9.81f;
 	m_fGravityMult = 1.f;
@@ -168,7 +168,7 @@ void Player::Update(float delt)
 		EntitiesTwo[i].SetPos(temp);
 		EntitiesTwo[i].UpdateWorldView();
 
-		if (EntitiesTwo[i].GetPos().y > -1.75)
+		if (EntitiesTwo[i].GetPos().y > -1.3)
 		{
 			EntitiesTwo[i].SetVelocity(XMFLOAT3(0, 0, 0));
 		}
@@ -184,7 +184,7 @@ void Player::Update(float delt)
 void Player::SpellOne()
 {
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(.125, .125, .125)));
+	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(.05, .05, .05)));
 	EntitiesOne[EntitiesOne.size() - 1].SetVelocity(m_Camera->GetForward());
 	EntitiesOne[EntitiesOne.size() - 1].UpdateWorldView();
 }
@@ -193,7 +193,7 @@ void Player::SpellTwo()
 {
 
 	XMVECTOR pos = XMLoadFloat3(&m_vPos);
-	XMVECTOR offset = XMVectorSet(0, -3, 0, 0);
+	XMVECTOR offset = XMVectorSet(0, -4, 0, 0);
 	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
 	displace = XMVectorScale(displace, 3);
 	displace = XMVectorSetIntY(displace, 0);

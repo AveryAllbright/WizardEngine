@@ -55,6 +55,9 @@ Game::~Game()
 	delete Melon;
 	delete melonMat;
 	delete skyCube;
+
+	delete floor;
+	
 	delete Cam;
 	delete player;
 
@@ -65,9 +68,7 @@ Game::~Game()
 
 
 	if (sampler) { sampler->Release(); sampler = 0; }
-	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }
-	//if (crateTexture) { crateTexture->Release(); crateTexture = 0; }
-	
+	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
 }
 
 // --------------------------------------------------------
@@ -196,13 +197,16 @@ void Game::CreateBasicGeometry()
 	//Crate = new Mesh("Models//cube.obj", device);
 	
 	skyCube = new Mesh("..//..//Assets//Models//cube.obj", device);
+
+	floor = new Mesh("..//..//Assets//Models//floor.obj", device);
 	
 	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
-	//Entities.push_back(Entity(Crate, crateMat, worldMatrix, XMFLOAT3(5, 0, 0), standRot, standScale));
 
 	Entities[0].SetScale(XMFLOAT3(.125, .125, .125));
 
 	Entities[0].UpdateWorldView();
+
+	
 
 	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
 	melonCollider->isTrigger = false;
@@ -216,6 +220,16 @@ void Game::CreateBasicGeometry()
 	Entities[1].AddComponent(melonCollider2);
 	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
 	Entities[1].SetScale(XMFLOAT3(.125, .125, .125));
+
+	for (int i = -5; i < 5; i++)
+	{
+		for (int j = -5; j < 5; j++)
+		{
+			Entities.push_back(Entity(floor, melonMat, worldMatrix, XMFLOAT3(i * 20, -2.5, j * 20), standRot, standScale));
+			Entities[Entities.size() - 1].UpdateWorldView();
+		}
+	}
+	
 	
 	Entities[1].UpdateWorldView();
 	
