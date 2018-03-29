@@ -7,7 +7,6 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-
 // --------------------------------------------------------
 // Constructor
 //
@@ -24,7 +23,6 @@ Game::Game(HINSTANCE hInstance)
 		1080,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
 {
-
 	
 	// Initialize fields
 	vertexShader = 0;
@@ -32,11 +30,8 @@ Game::Game(HINSTANCE hInstance)
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
-	CreateConsoleWindow(500, 120, 32, 120);
-	printf("Console window created successfully.  Feel free to printf() here.");
-	
+	CreateConsoleWindow(500, 120, 32, 120);	
 #endif
-	
 }
 
 // --------------------------------------------------------
@@ -65,10 +60,15 @@ Game::~Game()
 	skyDepth->Release();
 	skyRast->Release();
 
-
-
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
+
+	delete basicGeometry.cone;
+	delete basicGeometry.cube;
+	delete basicGeometry.cylinder;
+	delete basicGeometry.helix;
+	delete basicGeometry.sphere;
+	delete basicGeometry.torus;
 }
 
 // --------------------------------------------------------
@@ -129,9 +129,7 @@ void Game::LoadShaders()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	skyVS = new SimpleVertexShader(device, context);
-	bool test = skyVS->LoadShaderFile(L"SkyVS.cso");
-
-	test;
+	skyVS->LoadShaderFile(L"SkyVS.cso");
 
 	skyPS = new SimplePixelShader(device, context);
 	skyPS->LoadShaderFile(L"SkyPS.cso");
@@ -174,6 +172,14 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
+	//TODO: autoload all assets in folder and store as filename
+	basicGeometry.cone = new Mesh("../../Assets/Models/cone.obj", device);
+	basicGeometry.cube = new Mesh("../../Assets/Models/cube.obj", device);
+	basicGeometry.cylinder = new Mesh("../../Assets/Models/cylinder.obj", device);
+	basicGeometry.helix = new Mesh("../../Assets/Models/helix.obj", device);
+	basicGeometry.sphere = new Mesh("../../Assets/Models/sphere.obj", device);
+	basicGeometry.torus = new Mesh("../../Assets/Models/torus.obj", device);
+
 	XMFLOAT3 standRot = XMFLOAT3(0, 0, 0);
 	XMFLOAT3 standScale = XMFLOAT3(1, 1, 1);
 	
