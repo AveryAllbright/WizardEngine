@@ -1,8 +1,8 @@
 #include "Entity.h"
 #include "Component.h"
 
-Entity::Entity(Mesh * a_pMesh, Material* a_pMaterial, DirectX::XMFLOAT4X4 a_mWorld, DirectX::XMFLOAT3 a_vPos, DirectX::XMFLOAT3 a_vRotation, DirectX::XMFLOAT3 a_vScale) : m_pMesh(a_pMesh), m_mWorld(a_mWorld),
-m_vPos(a_vPos), m_vRotation(a_vRotation), m_vScale(a_vScale), m_pMaterial(a_pMaterial)
+Entity::Entity(Mesh * a_pMesh, Material* a_pMaterial, DirectX::XMFLOAT4X4 a_mWorld, DirectX::XMFLOAT3 a_vPos, DirectX::XMFLOAT3 a_vRotation, DirectX::XMFLOAT3 a_vScale) : mesh(a_pMesh), m_mWorld(a_mWorld),
+m_vPos(a_vPos), m_vRotation(a_vRotation), m_vScale(a_vScale), material(a_pMaterial)
 {
 	components = std::vector<Component*>();
 }
@@ -30,36 +30,10 @@ bool Entity::Update(float deltaTime) {
 		components[i]->Update(deltaTime);
 	return true;
 }
-
-void Entity::SetRotation(DirectX::XMFLOAT3 a_vRotation) 
+#pragma region Accessors
+DirectX::XMFLOAT3 Entity::GetPosition()
 {
-	m_vRotation = a_vRotation;
-}
-
-void Entity::SetScale(DirectX::XMFLOAT3 a_vScale)
-{
-	m_vScale = a_vScale;
-}
-
-void Entity::SetPosition(DirectX::XMFLOAT3 a_vPos)
-{
-	m_vPos = a_vPos;
-}
-
-void Entity::SetWorld(DirectX::XMFLOAT4X4 a_mWorld)
-{
-	m_mWorld = a_mWorld;
-}
-
-void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj)
-{
-	m_pMaterial->GetVertShader()->SetMatrix4x4("world", m_mWorld);
-	m_pMaterial->GetVertShader()->SetMatrix4x4("view", a_view);
-	m_pMaterial->GetVertShader()->SetMatrix4x4("projection", a_proj);
-
-	m_pMaterial->GetVertShader()->CopyAllBufferData();
-	m_pMaterial->GetVertShader()->SetShader();
-	m_pMaterial->GetPixelShader()->SetShader();
+	return m_vPos;
 }
 
 DirectX::XMFLOAT3 Entity::GetRotation()
@@ -72,33 +46,42 @@ DirectX::XMFLOAT3 Entity::GetScale()
 	return m_vScale;
 }
 
-DirectX::XMFLOAT3 Entity::GetPosition()
-{
-	return m_vPos;
-}
-
-DirectX::XMFLOAT4X4 Entity::GetWorld()
+DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
 {
 	return m_mWorld;
 }
 
-DirectX::XMFLOAT3 Entity::GetVelocity()
+Entity* Entity::SetPosition(DirectX::XMFLOAT3 a_vPos)
 {
-	return m_velocity;
-}
-void Entity::SetVelocity(DirectX::XMFLOAT3 toCopy)
-{
-	m_velocity = toCopy;
+	m_vPos = a_vPos;
+	outdatedMatrix = true;
+	return this;
 }
 
-Mesh * Entity::GetMesh()
+Entity* Entity::SetRotation(DirectX::XMFLOAT3 a_vRotation)
 {
-	return m_pMesh;
+	m_vRotation = a_vRotation;
+	outdatedMatrix = true;
+	return this;
 }
 
-Material * Entity::GetMaterial()
+Entity* Entity::SetScale(DirectX::XMFLOAT3 a_vScale)
 {
-	return m_pMaterial;
+	m_vScale = a_vScale;
+	outdatedMatrix = true;
+	return this;
+}
+#pragma endregion
+
+void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj)
+{
+	material->GetVertShader()->SetMatrix4x4("world", m_mWorld);
+	material->GetVertShader()->SetMatrix4x4("view", a_view);
+	material->GetVertShader()->SetMatrix4x4("projection", a_proj);
+	
+	material->GetVertShader()->CopyAllBufferData();
+	material->GetVertShader()->SetShader();
+	material->GetPixelShader()->SetShader();
 }
 
 void Entity::Move(DirectX::XMFLOAT3 a_vDisplaceBy)
@@ -142,10 +125,7 @@ void Entity::ScaleBy(DirectX::XMFLOAT3 a_vScale)
 	m_vScale.z += a_vScale.z;
 }
 
-Entity::~Entity()
-{
-}
-
+Entity::~Entity(){}
 
 void Entity::HandleCollision(Collider* mainobj, Collider* other)
 {

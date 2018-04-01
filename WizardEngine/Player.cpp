@@ -145,7 +145,7 @@ void Player::Update(float delt)
 	for (int j = 0; j < EntitiesOne.size(); j++) 
 	{
 		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j].GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j].GetVelocity());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j].velocity);
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * entityOneSpeed);
 		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
 		XMFLOAT3 temp;
@@ -158,7 +158,7 @@ void Player::Update(float delt)
 	for (int i = 0; i < EntitiesTwo.size(); i++)
 	{
 		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i].GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i].GetVelocity());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i].velocity);
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * wallRiseSpeed);
 
 		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
@@ -170,7 +170,7 @@ void Player::Update(float delt)
 
 		if (EntitiesTwo[i].GetPosition().y > -1.3)
 		{
-			EntitiesTwo[i].SetVelocity(XMFLOAT3(0, 0, 0));
+			EntitiesTwo[i].velocity = XMFLOAT3(0, 0, 0);
 		}
 	}
 
@@ -185,7 +185,7 @@ void Player::SpellOne()
 {
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(.05, .05, .05)));
-	EntitiesOne[EntitiesOne.size() - 1].SetVelocity(m_Camera->GetForward());
+	EntitiesOne[EntitiesOne.size() - 1].velocity = m_Camera->GetForward();
 	EntitiesOne[EntitiesOne.size() - 1].UpdateWorldView();
 }
 
@@ -206,7 +206,7 @@ void Player::SpellTwo()
 
 	EntitiesTwo.push_back(Entity(meshSpellTwo, matSpellTwo, world, offsetby, XMFLOAT3(0, 0, 0), XMFLOAT3(.10, .10, .10)));
 
-	EntitiesTwo[EntitiesTwo.size() - 1].SetVelocity(XMFLOAT3(0, wallRiseSpeed, 0));
+	EntitiesTwo[EntitiesTwo.size() - 1].velocity = XMFLOAT3(0, wallRiseSpeed, 0);
 	EntitiesTwo[EntitiesTwo.size() - 1].UpdateWorldView();
 }
 

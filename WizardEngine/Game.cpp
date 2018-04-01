@@ -261,7 +261,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	DirectX::XMFLOAT3 e1pos = Entities[1].GetPosition();
 	float speed = 10;
-	float change = sinf(totalTime * speed) * .02;
+	float change = (float)sinf(totalTime * speed) * .02f;
 	e1pos.x += change;
 	Entities[1].getComponent<ColliderBox>()->SetCenter(e1pos);
 	Entities[1].SetPosition(e1pos);
@@ -310,7 +310,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		Entities[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 		
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i].material->GetSRV());
 		
 		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
 
@@ -321,13 +321,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = Entities[i].GetMesh()->GetVertexBuffer();
+		vert = Entities[i].mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(Entities[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(Entities[i].mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			Entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			Entities[i].mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
@@ -338,7 +338,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		player->EntitiesOne[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i].material->GetSRV());
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -349,13 +349,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = player->EntitiesOne[i].GetMesh()->GetVertexBuffer();
+		vert = player->EntitiesOne[i].mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesOne[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(player->EntitiesOne[i].mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			player->EntitiesOne[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			player->EntitiesOne[i].mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
@@ -366,7 +366,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		player->EntitiesTwo[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i].material->GetSRV());
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -377,13 +377,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = player->EntitiesTwo[i].GetMesh()->GetVertexBuffer();
+		vert = player->EntitiesTwo[i].mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesTwo[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(player->EntitiesTwo[i].mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			player->EntitiesTwo[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			player->EntitiesTwo[i].mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
