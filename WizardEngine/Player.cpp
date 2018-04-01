@@ -144,20 +144,20 @@ void Player::Update(float delt)
 	}
 	for (int j = 0; j < EntitiesOne.size(); j++) 
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j].GetPos());
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j].GetPosition());
 		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j].GetVelocity());
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * entityOneSpeed);
 		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
 		XMFLOAT3 temp;
 		XMStoreFloat3(&temp, vecFinal);
 
-		EntitiesOne[j].SetPos(temp);
+		EntitiesOne[j].SetPosition(temp);
 		EntitiesOne[j].UpdateWorldView();
 	}
 
 	for (int i = 0; i < EntitiesTwo.size(); i++)
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i].GetPos());
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i].GetPosition());
 		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i].GetVelocity());
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * wallRiseSpeed);
 
@@ -165,10 +165,10 @@ void Player::Update(float delt)
 		XMFLOAT3 temp;
 		XMStoreFloat3(&temp, vecFinal);
 
-		EntitiesTwo[i].SetPos(temp);
+		EntitiesTwo[i].SetPosition(temp);
 		EntitiesTwo[i].UpdateWorldView();
 
-		if (EntitiesTwo[i].GetPos().y > -1.3)
+		if (EntitiesTwo[i].GetPosition().y > -1.3)
 		{
 			EntitiesTwo[i].SetVelocity(XMFLOAT3(0, 0, 0));
 		}

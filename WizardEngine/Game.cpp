@@ -259,12 +259,12 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	DirectX::XMFLOAT3 e1pos = Entities[1].GetPos();
+	DirectX::XMFLOAT3 e1pos = Entities[1].GetPosition();
 	float speed = 10;
 	float change = sinf(totalTime * speed) * .02;
 	e1pos.x += change;
 	Entities[1].getComponent<ColliderBox>()->SetCenter(e1pos);
-	Entities[1].SetPos(e1pos);
+	Entities[1].SetPosition(e1pos);
 	Entities[1].UpdateWorldView();
 	Entities[1].Update(deltaTime);
 	// Quit if the escape key is pressed

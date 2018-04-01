@@ -41,7 +41,7 @@ void Entity::SetScale(DirectX::XMFLOAT3 a_vScale)
 	m_vScale = a_vScale;
 }
 
-void Entity::SetPos(DirectX::XMFLOAT3 a_vPos)
+void Entity::SetPosition(DirectX::XMFLOAT3 a_vPos)
 {
 	m_vPos = a_vPos;
 }
@@ -72,7 +72,7 @@ DirectX::XMFLOAT3 Entity::GetScale()
 	return m_vScale;
 }
 
-DirectX::XMFLOAT3 Entity::GetPos()
+DirectX::XMFLOAT3 Entity::GetPosition()
 {
 	return m_vPos;
 }
