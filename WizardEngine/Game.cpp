@@ -3,6 +3,8 @@
 #include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -47,11 +49,12 @@ Game::~Game()
 	delete skyVS;
 	delete skyPS;
 	delete pixelShader;
-	delete Melon;
-	delete melonMat;
-	delete skyCube;
-
-	delete floor;
+	delete melonMesh;
+	delete columnMesh;
+	delete melonMaterial;
+	delete marbleMaterial;
+	
+	delete floorMesh;
 	
 	delete Cam;
 	delete player;
@@ -62,6 +65,7 @@ Game::~Game()
 
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
+	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
 
 	delete basicGeometry.cone;
 	delete basicGeometry.cube;
@@ -82,6 +86,9 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	Cam = new Camera(width, height);
+	player = new Player(Cam, device, context, vertexShader, pixelShader);
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -114,9 +121,6 @@ void Game::Init()
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&ds, &skyDepth);
-
-	Cam = new Camera(width, height);
-	player = new Player(Cam, device, context, vertexShader, pixelShader);
 }
 
 // --------------------------------------------------------
@@ -185,8 +189,8 @@ void Game::CreateBasicGeometry()
 	basicGeometry.sphere   = new Mesh("../../Assets/Models/sphere.obj",   device);
 	basicGeometry.torus    = new Mesh("../../Assets/Models/torus.obj",    device);
 
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
-	
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif",  0, &melonTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -197,16 +201,16 @@ void Game::CreateBasicGeometry()
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMat = new Material(vertexShader, pixelShader, melonTexture, sampler);
+	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture, sampler);
+	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler);
 
-	Melon = new Mesh("..//..//Assets//Models//melon.obj", device);
-	
-	skyCube = new Mesh("..//..//Assets//Models//cube.obj", device);
 
-	floor = new Mesh("..//..//Assets//Models//floor.obj", device);
-	
+	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj", device);
+	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj", device);
+	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
 
-	Entity* melon1 = new Entity(Melon, melonMat);
+
+	Entity* melon1 = new Entity(melonMesh, melonMaterial);
 	Entities.push_back(melon1);
 	melon1->SetScale(XMFLOAT3(.125, .125, .125));
 
@@ -215,7 +219,7 @@ void Game::CreateBasicGeometry()
 	melon1->AddComponent(melonCollider);
 	melonCollider->onCollisionEnterFunction = &Entity::HandleCollision;
 
-	Entity* melon2 = new Entity(Melon, melonMat);
+	Entity* melon2 = new Entity(melonMesh, melonMaterial);
 	Entities.push_back(melon2);
 	melon2->SetScale(XMFLOAT3(.125, .125, .125));
 
@@ -224,13 +228,29 @@ void Game::CreateBasicGeometry()
 	melon2->AddComponent(melonCollider2);
 	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
 
+	// ------------------------
+	// Create a ring of columns
+	// ------------------------
+	const int RING_RADIUS = 30;
+	const int COLUMN_COUNT = 5;
+	
+	// How many degrees between the columns
+	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 
-	for (int i = -5; i < 5; i++)
+	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
+		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		Entity* column = new Entity(columnMesh, marbleMaterial);
+		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
+		Entities.push_back(column);
+	}
+
+	for (float i = -5; i < 5; i++)
 	{
-		for (int j = -5; j < 5; j++)
+		for (float j = -5; j < 5; j++)
 		{
-			Entity* floorPiece = new Entity(floor, melonMat);
-			floorPiece->SetPosition(XMFLOAT3(i * 20, -2.5, j * 20));
+			Entity* floorPiece = new Entity(floorMesh, melonMaterial);
+			floorPiece->SetPosition(XMFLOAT3(i * 20, -player->playerHeight, j * 20));
 			Entities.push_back(floorPiece);
 		}
 	}
@@ -385,8 +405,8 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
-	ID3D11Buffer* skyVB = skyCube->GetVertexBuffer();
-	ID3D11Buffer* skyIB = skyCube->GetIndexBuffer();
+	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
+	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
 
 	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
 	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
@@ -402,7 +422,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(skyRast);
 	context->OMSetDepthStencilState(skyDepth, 0);
-	context->DrawIndexed(skyCube->GetIndexCount(), 0, 0);
+	context->DrawIndexed(basicGeometry.cube->GetIndexCount(), 0, 0);
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);

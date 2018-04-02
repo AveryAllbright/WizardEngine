@@ -73,5 +73,6 @@ public:
 	std::vector<Entity*> EntitiesThree;
 
 	void SetActiveSpell(float input);
+	float playerHeight;
 };
 

@@ -45,6 +45,8 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 
 	entityOneSpeed = 3.5;
 	wallRiseSpeed = 1.f;
+
+	playerHeight = 2.5f;
 }
 
 
