@@ -95,6 +95,8 @@ void Game::Init()
 	LoadShaders();
 	CreateMatrices();
 	CreateBasicGeometry();
+	CreateMaterials();
+	CreateModels();
 
 	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
 	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.1f, 0.1f, 1.f);
@@ -181,7 +183,7 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	//TODO: autoload all assets in folder and store as filename
+	//TODO: autoload all assets in folder and store as filename?
 	basicGeometry.cone     = new Mesh("../../Assets/Models/cone.obj",     device);
 	basicGeometry.cube     = new Mesh("../../Assets/Models/cube.obj",     device);
 	basicGeometry.cylinder = new Mesh("../../Assets/Models/cylinder.obj", device);
@@ -189,8 +191,13 @@ void Game::CreateBasicGeometry()
 	basicGeometry.sphere   = new Mesh("../../Assets/Models/sphere.obj",   device);
 	basicGeometry.torus    = new Mesh("../../Assets/Models/torus.obj",    device);
 
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif",  0, &melonTexture);
+}
+
+void Game::CreateMaterials() {
+
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
+
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -201,15 +208,17 @@ void Game::CreateBasicGeometry()
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture, sampler);
+	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler);
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler);
+}
 
+void Game::CreateModels() {
 
-	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj", device);
-	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj", device);
+	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj",  device);
+	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj",  device);
 	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
 
-
+	#pragma region melonCollisionTest
 	Entity* melon1 = new Entity(melonMesh, melonMaterial);
 	Entities.push_back(melon1);
 	melon1->SetScale(XMFLOAT3(.125, .125, .125));
@@ -227,13 +236,14 @@ void Game::CreateBasicGeometry()
 	melonCollider2->isTrigger = false;
 	melon2->AddComponent(melonCollider2);
 	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
+	#pragma endregion
 
 	// ------------------------
 	// Create a ring of columns
 	// ------------------------
 	const int RING_RADIUS = 30;
 	const int COLUMN_COUNT = 5;
-	
+
 	// How many degrees between the columns
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 
@@ -241,10 +251,14 @@ void Game::CreateBasicGeometry()
 		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
 		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
 		Entity* column = new Entity(columnMesh, marbleMaterial);
-		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
+		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
+			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
 	}
 
+	// ------------------------
+	// Create the floor tiles
+	// ------------------------
 	for (float i = -5; i < 5; i++)
 	{
 		for (float j = -5; j < 5; j++)
