@@ -65,7 +65,7 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 	
-	std::vector<Entity> Entities;
+	std::vector<Entity*> Entities;
 	
 	Mesh* Melon;
 	Mesh* skyCube;

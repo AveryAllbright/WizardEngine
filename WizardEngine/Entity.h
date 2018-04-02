@@ -4,12 +4,13 @@ class Collider;
 #include "Object.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "DXCore.h"
 #include <DirectXMath.h>
 
 class Entity : public Object {
 public:
-	Entity(Mesh* a_pMesh, Material* a_pMaterial, DirectX::XMFLOAT4X4 a_mWorld, DirectX::XMFLOAT3 a_vPos, DirectX::XMFLOAT3 a_vRotation, DirectX::XMFLOAT3 a_vScale);
-	virtual ~Entity();
+	Entity(Mesh* a_pMesh, Material* a_pMaterial);
+	~Entity();
 
 	// Accessors 
 	DirectX::XMFLOAT3 GetPosition();
@@ -26,7 +27,6 @@ public:
 	void Move(DirectX::XMFLOAT3 a_vDisplaceBy);
 	void MoveForward(float a_fDisplaceBy);
 
-	void UpdateWorldView();
 	void RotateBy(DirectX::XMFLOAT3 a_vRotation);
 	void ScaleBy(DirectX::XMFLOAT3 a_vScale);
 
@@ -58,7 +58,7 @@ private:
 	DirectX::XMFLOAT3 m_vScale;
 	DirectX::XMFLOAT3 m_vPos;
 	DirectX::XMFLOAT4X4 m_mWorld;
-	
+	void UpdateWorldView();
 	bool outdatedMatrix = false;
 };
 
