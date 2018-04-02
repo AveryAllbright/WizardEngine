@@ -50,7 +50,16 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 
 Player::~Player()
 {
-	
+	for (int i = 0; i < EntitiesOne.size(); i++) {
+		delete EntitiesOne[i];
+	}
+	for (int i = 0; i < EntitiesTwo.size(); i++) {
+		delete EntitiesTwo[i];
+	}
+	for (int i = 0; i < EntitiesThree.size(); i++) {
+		delete EntitiesThree[i];
+	}
+
 }
 
 void Player::Update(float delt)
@@ -144,31 +153,31 @@ void Player::Update(float delt)
 	}
 	for (int j = 0; j < EntitiesOne.size(); j++) 
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j].GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j].velocity);
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j]->GetPosition());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j]->velocity);
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * entityOneSpeed);
 		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
 		XMFLOAT3 temp;
 		XMStoreFloat3(&temp, vecFinal);
 
-		EntitiesOne[j].SetPosition(temp);
+		EntitiesOne[j]->SetPosition(temp);
 	}
 
 	for (int i = 0; i < EntitiesTwo.size(); i++)
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i].GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i].velocity);
+		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i]->GetPosition());
+		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i]->velocity);
 		vecTwo = DirectX::XMVectorScale(vecTwo, delt * wallRiseSpeed);
 
 		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
 		XMFLOAT3 temp;
 		XMStoreFloat3(&temp, vecFinal);
 
-		EntitiesTwo[i].SetPosition(temp);
+		EntitiesTwo[i]->SetPosition(temp);
 
-		if (EntitiesTwo[i].GetPosition().y > -1.3)
+		if (EntitiesTwo[i]->GetPosition().y > -1.3)
 		{
-			EntitiesTwo[i].velocity = XMFLOAT3(0, 0, 0);
+			EntitiesTwo[i]->velocity = XMFLOAT3(0, 0, 0);
 		}
 	}
 
@@ -181,16 +190,16 @@ void Player::Update(float delt)
 
 void Player::SpellOne()
 {
-	/*
+	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	EntitiesOne.push_back(Entity(meshSpellOne, matSpellOne, world, m_vPos, XMFLOAT3(0, 0, 0), XMFLOAT3(.05, .05, .05)));
-	EntitiesOne[EntitiesOne.size() - 1].velocity = m_Camera->GetForward();
-	*/
+	EntitiesOne.push_back((new Entity(meshSpellOne, matSpellOne))->SetPosition(m_vPos)->SetScale(XMFLOAT3(.05, .05, .05)));
+	EntitiesOne[EntitiesOne.size() - 1]->velocity = m_Camera->GetForward();
+	
 }
 
 void Player::SpellTwo()
 {
-	/*
+	
 	XMVECTOR pos = XMLoadFloat3(&m_vPos);
 	XMVECTOR offset = XMVectorSet(0, -4, 0, 0);
 	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
@@ -203,10 +212,10 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	EntitiesTwo.push_back(Entity(meshSpellTwo, matSpellTwo, world, offsetby, XMFLOAT3(0, 0, 0), XMFLOAT3(.10, .10, .10)));
+	EntitiesTwo.push_back((new Entity(meshSpellTwo, matSpellTwo))->SetPosition(offsetby)->SetScale(XMFLOAT3(.10, .10, .10)));
 
-	EntitiesTwo[EntitiesTwo.size() - 1].velocity = XMFLOAT3(0, wallRiseSpeed, 0);
-	*/
+	EntitiesTwo[EntitiesTwo.size() - 1]->velocity = XMFLOAT3(0, wallRiseSpeed, 0);
+	
 }
 
 void Player::SpellThree()

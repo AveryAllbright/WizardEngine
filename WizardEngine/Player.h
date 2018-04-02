@@ -63,14 +63,14 @@ public:
 	void Update(float delt);
 
 	void SpellOne();
-	std::vector<Entity> EntitiesOne;
+	std::vector<Entity*> EntitiesOne;
 	
 
 	void SpellTwo();
-	std::vector<Entity> EntitiesTwo;
+	std::vector<Entity*> EntitiesTwo;
 
 	void SpellThree();
-	std::vector<Entity> EntitiesThree;
+	std::vector<Entity*> EntitiesThree;
 
 	void SetActiveSpell(float input);
 };
