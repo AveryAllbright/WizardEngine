@@ -45,6 +45,8 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
+	void CreateMaterials();
+	void CreateModels();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -65,13 +67,14 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 	
-	std::vector<Entity> Entities;
+	std::vector<Entity*> Entities;
 	
-	Mesh* Melon;
-	Mesh* skyCube;
-	Mesh* floor;
+	Mesh* melonMesh;
+	Mesh* floorMesh;
+	Mesh* columnMesh;
 	
 	ID3D11ShaderResourceView* melonTexture;
+	ID3D11ShaderResourceView* marbleTexture;
 	ID3D11ShaderResourceView* skySRV;
 
 	ID3D11RasterizerState* skyRast;
@@ -79,8 +82,9 @@ private:
 
 	ID3D11SamplerState* sampler;
 	
-	Material* melonMat;
-	Material* floorMat;	
+	Material* melonMaterial;
+	Material* floorMaterial;
+	Material* marbleMaterial;
 
 
 	Camera* Cam;

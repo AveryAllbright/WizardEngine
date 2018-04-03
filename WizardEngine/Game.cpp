@@ -3,6 +3,8 @@
 #include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -47,11 +49,12 @@ Game::~Game()
 	delete skyVS;
 	delete skyPS;
 	delete pixelShader;
-	delete Melon;
-	delete melonMat;
-	delete skyCube;
-
-	delete floor;
+	delete melonMesh;
+	delete columnMesh;
+	delete melonMaterial;
+	delete marbleMaterial;
+	
+	delete floorMesh;
 	
 	delete Cam;
 	delete player;
@@ -62,6 +65,7 @@ Game::~Game()
 
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
+	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
 
 	delete basicGeometry.cone;
 	delete basicGeometry.cube;
@@ -69,6 +73,11 @@ Game::~Game()
 	delete basicGeometry.helix;
 	delete basicGeometry.sphere;
 	delete basicGeometry.torus;
+
+	for (UINT i = 0; i < Entities.size(); i++)
+	{
+		delete Entities[i];
+	}
 }
 
 // --------------------------------------------------------
@@ -77,20 +86,25 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	Cam = new Camera(width, height);
+	player = new Player(Cam, device, context, vertexShader, pixelShader);
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 	CreateMatrices();
 	CreateBasicGeometry();
+	CreateMaterials();
+	CreateModels();
 
 	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
 	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.1f, 0.1f, 1.f);
-	DirLight.Direction = XMFLOAT3(1.f, 0.f, 1.f);
+	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
 
 	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
 	TopLight.DiffuseColour = XMFLOAT4(0.1f, 0.1f, .5f, 1.f);
-	TopLight.Direction = XMFLOAT3(0.f, 2.f, 0.f);
+	TopLight.Direction     = XMFLOAT3(0.f, 2.f, 0.f);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -109,9 +123,6 @@ void Game::Init()
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&ds, &skyDepth);
-
-	Cam = new Camera(width, height);
-	player = new Player(Cam, device,context, vertexShader, pixelShader);
 }
 
 // --------------------------------------------------------
@@ -172,20 +183,21 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	//TODO: autoload all assets in folder and store as filename
-	basicGeometry.cone = new Mesh("../../Assets/Models/cone.obj", device);
-	basicGeometry.cube = new Mesh("../../Assets/Models/cube.obj", device);
+	//TODO: autoload all assets in folder and store as filename?
+	basicGeometry.cone     = new Mesh("../../Assets/Models/cone.obj",     device);
+	basicGeometry.cube     = new Mesh("../../Assets/Models/cube.obj",     device);
 	basicGeometry.cylinder = new Mesh("../../Assets/Models/cylinder.obj", device);
-	basicGeometry.helix = new Mesh("../../Assets/Models/helix.obj", device);
-	basicGeometry.sphere = new Mesh("../../Assets/Models/sphere.obj", device);
-	basicGeometry.torus = new Mesh("../../Assets/Models/torus.obj", device);
+	basicGeometry.helix    = new Mesh("../../Assets/Models/helix.obj",    device);
+	basicGeometry.sphere   = new Mesh("../../Assets/Models/sphere.obj",   device);
+	basicGeometry.torus    = new Mesh("../../Assets/Models/torus.obj",    device);
 
-	XMFLOAT3 standRot = XMFLOAT3(0, 0, 0);
-	XMFLOAT3 standScale = XMFLOAT3(1, 1, 1);
-	
+}
+
+void Game::CreateMaterials() {
 
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
-	
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
+
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -196,49 +208,66 @@ void Game::CreateBasicGeometry()
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMat = new Material(vertexShader, pixelShader, melonTexture, sampler);
-	//crateMat = new Material(vertexShader, pixelShader, crateTexture, sampler);
+	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler);
+	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler);
+}
 
-	Melon = new Mesh("..//..//Assets//Models//melon.obj", device);
-	//Crate = new Mesh("Models//cube.obj", device);
-	
-	skyCube = new Mesh("..//..//Assets//Models//cube.obj", device);
+void Game::CreateModels() {
 
-	floor = new Mesh("..//..//Assets//Models//floor.obj", device);
-	
-	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
+	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj",  device);
+	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj",  device);
+	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
 
-	Entities[0].SetScale(XMFLOAT3(.125, .125, .125));
-
-	Entities[0].UpdateWorldView();
-
-	
+	#pragma region melonCollisionTest
+	Entity* melon1 = new Entity(melonMesh, melonMaterial);
+	Entities.push_back(melon1);
+	melon1->SetScale(XMFLOAT3(.125, .125, .125));
 
 	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
 	melonCollider->isTrigger = false;
-	Entities[0].AddComponent(melonCollider);
+	melon1->AddComponent(melonCollider);
 	melonCollider->onCollisionEnterFunction = &Entity::HandleCollision;
 
-	Entities.push_back(Entity(Melon, melonMat, worldMatrix, XMFLOAT3(0, 0, 0), standRot, standScale));
-	
+	Entity* melon2 = new Entity(melonMesh, melonMaterial);
+	Entities.push_back(melon2);
+	melon2->SetScale(XMFLOAT3(.125, .125, .125));
+
 	ColliderBox* melonCollider2 = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
 	melonCollider2->isTrigger = false;
-	Entities[1].AddComponent(melonCollider2);
+	melon2->AddComponent(melonCollider2);
 	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
-	Entities[1].SetScale(XMFLOAT3(.125, .125, .125));
+	#pragma endregion
 
-	for (int i = -5; i < 5; i++)
+	// ------------------------
+	// Create a ring of columns
+	// ------------------------
+	const int RING_RADIUS = 30;
+	const int COLUMN_COUNT = 5;
+
+	// How many degrees between the columns
+	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
+
+	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
+		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		Entity* column = new Entity(columnMesh, marbleMaterial);
+		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
+			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
+		Entities.push_back(column);
+	}
+
+	// ------------------------
+	// Create the floor tiles
+	// ------------------------
+	for (float i = -5; i < 5; i++)
 	{
-		for (int j = -5; j < 5; j++)
+		for (float j = -5; j < 5; j++)
 		{
-			Entities.push_back(Entity(floor, melonMat, worldMatrix, XMFLOAT3(i * 20, -2.5, j * 20), standRot, standScale));
-			Entities[Entities.size() - 1].UpdateWorldView();
+			Entity* floorPiece = new Entity(floorMesh, melonMaterial);
+			floorPiece->SetPosition(XMFLOAT3(i * 20, -player->playerHeight, j * 20));
+			Entities.push_back(floorPiece);
 		}
 	}
-	
-	
-	Entities[1].UpdateWorldView();
-	
 }
 
 // --------------------------------------------------------
@@ -259,14 +288,16 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	DirectX::XMFLOAT3 e1pos = Entities[1].GetPos();
+	for (UINT i = 0; i < Entities.size(); i++)
+	{
+		Entities[i]->Update(deltaTime);
+	}
+	DirectX::XMFLOAT3 e1pos = Entities[1]->GetPosition();
 	float speed = 10;
-	float change = sinf(totalTime * speed) * .02;
-	e1pos.x += change;
-	Entities[1].getComponent<ColliderBox>()->SetCenter(e1pos);
-	Entities[1].SetPos(e1pos);
-	Entities[1].UpdateWorldView();
-	Entities[1].Update(deltaTime);
+	float change = (float)sinf(totalTime * speed) * 4.f;
+	e1pos.x = change;
+	Entities[1]->getComponent<ColliderBox>()->SetCenter(e1pos);
+	Entities[1]->SetPosition(e1pos);
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -307,10 +338,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 
-		Entities[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+		Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 		
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
 		
 		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
 
@@ -321,13 +352,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = Entities[i].GetMesh()->GetVertexBuffer();
+		vert = Entities[i]->mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(Entities[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(Entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			Entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			Entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
@@ -335,10 +366,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (UINT i = 0; i < player->EntitiesOne.size(); i++)
 	{
 		
-		player->EntitiesOne[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+		player->EntitiesOne[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i]->material->GetSRV());
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -349,13 +380,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = player->EntitiesOne[i].GetMesh()->GetVertexBuffer();
+		vert = player->EntitiesOne[i]->mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesOne[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(player->EntitiesOne[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			player->EntitiesOne[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			player->EntitiesOne[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
@@ -363,10 +394,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (UINT i = 0; i < player->EntitiesTwo.size(); i++)
 	{
 
-		player->EntitiesTwo[i].PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+		player->EntitiesTwo[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i].GetMaterial()->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i]->material->GetSRV());
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -377,19 +408,19 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = player->EntitiesTwo[i].GetMesh()->GetVertexBuffer();
+		vert = player->EntitiesTwo[i]->mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesTwo[i].GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(player->EntitiesTwo[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			player->EntitiesTwo[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			player->EntitiesTwo[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
 
-	ID3D11Buffer* skyVB = skyCube->GetVertexBuffer();
-	ID3D11Buffer* skyIB = skyCube->GetIndexBuffer();
+	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
+	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
 
 	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
 	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
@@ -405,7 +436,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(skyRast);
 	context->OMSetDepthStencilState(skyDepth, 0);
-	context->DrawIndexed(skyCube->GetIndexCount(), 0, 0);
+	context->DrawIndexed(basicGeometry.cube->GetIndexCount(), 0, 0);
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);
