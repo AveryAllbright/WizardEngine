@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "Entity.h"
+#include "override_new.h"
 
 Component::Component()
 {

@@ -5,6 +5,7 @@
 #include "DDSTextureLoader.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "override_new.h"
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -46,15 +47,18 @@ Game::~Game()
 	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
+	delete pixelShader;
 	delete skyVS;
 	delete skyPS;
-	delete pixelShader;
+
+	// Meshes
 	delete melonMesh;
 	delete columnMesh;
+	delete floorMesh;
+
+	// Materials
 	delete melonMaterial;
 	delete marbleMaterial;
-	
-	delete floorMesh;
 	
 	delete Cam;
 	delete player;
@@ -62,10 +66,11 @@ Game::~Game()
 	skySRV->Release();
 	skyDepth->Release();
 	skyRast->Release();
-
+	
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
+	
 
 	delete basicGeometry.cone;
 	delete basicGeometry.cube;
@@ -77,7 +82,10 @@ Game::~Game()
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 		delete Entities[i];
+		Entities[i] = 0;
 	}
+
+	_CrtDumpMemoryLeaks();
 }
 
 // --------------------------------------------------------
@@ -93,7 +101,6 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
-	CreateMatrices();
 	CreateBasicGeometry();
 	CreateMaterials();
 	CreateModels();
@@ -147,50 +154,16 @@ void Game::LoadShaders()
 }
 
 // --------------------------------------------------------
-// Initializes the matrices necessary to represent our geometry's 
-// transformations and our 3D camera
-// --------------------------------------------------------
-void Game::CreateMatrices()
-{
-	// Set up world matrix
-	// - In an actual game, each object will need one of these and they should
-	//    update when/if the object moves (every frame)
-	// - You'll notice a "transpose" happening below, which is redundant for
-	//    an identity matrix.  This is just to show that HLSL expects a different
-	//    matrix (column major vs row major) than the DirectX Math library
-	XMMATRIX W = XMMatrixIdentity();
-	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
-
-	// Create the View matrix
-	// - In an actual game, recreate this matrix every time the camera 
-	//    moves (potentially every frame)
-	// - We're using the LOOK TO function, which takes the position of the
-	//    camera and the direction vector along which to look (as well as "up")
-	// - Another option is the LOOK AT function, to look towards a specific
-	//    point in 3D space
-	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
-	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-	XMMATRIX V = XMMatrixLookToLH(
-		pos,     // The position of the "camera"
-		dir,     // Direction the camera is looking
-		up);     // "Up" direction in 3D space (prevents roll)
-	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
-}
-
-// --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	//TODO: autoload all assets in folder and store as filename?
 	basicGeometry.cone     = new Mesh("../../Assets/Models/cone.obj",     device);
 	basicGeometry.cube     = new Mesh("../../Assets/Models/cube.obj",     device);
 	basicGeometry.cylinder = new Mesh("../../Assets/Models/cylinder.obj", device);
 	basicGeometry.helix    = new Mesh("../../Assets/Models/helix.obj",    device);
 	basicGeometry.sphere   = new Mesh("../../Assets/Models/sphere.obj",   device);
 	basicGeometry.torus    = new Mesh("../../Assets/Models/torus.obj",    device);
-
 }
 
 void Game::CreateMaterials() {
@@ -226,7 +199,7 @@ void Game::CreateModels() {
 
 	// How many degrees between the columns
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
-
+	
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
 		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
 		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
@@ -268,16 +241,15 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-	for (UINT i = 0; i < Entities.size(); i++)
-		Entities[i]->Update(deltaTime);
-
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	for (UINT i = 0; i < Entities.size(); i++)
+		Entities[i]->Update(deltaTime);
+
 	Cam->Update(deltaTime, totalTime);
 	player->Update(deltaTime);
-	
 }
 
 // --------------------------------------------------------

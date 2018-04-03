@@ -40,10 +40,8 @@ public:
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 private:
-
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateMatrices();
 	void CreateBasicGeometry();
 	void CreateMaterials();
 	void CreateModels();
@@ -54,13 +52,8 @@ private:
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
 
-	SimpleSRV* srv;
-
 	BasicGeometry basicGeometry;
 
-	// The matrices to go from model space to screen space
-	DirectX::XMFLOAT4X4 worldMatrix;
-	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 projectionMatrix;
 
 	// Keeps track of the old mouse position.  Useful for 
@@ -83,7 +76,6 @@ private:
 	ID3D11SamplerState* sampler;
 	
 	Material* melonMaterial;
-	Material* floorMaterial;
 	Material* marbleMaterial;
 
 

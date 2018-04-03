@@ -2,6 +2,7 @@
 #include "Collider.h"
 #include "Entity.h"
 #include <iostream>
+#include "override_new.h"
 
 Collider::Collider() {
 	onCollisionEnterFunction = nullptr;

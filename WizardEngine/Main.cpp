@@ -1,4 +1,4 @@
-
+#define _CRTDBG_MAP_ALLOC
 #include <Windows.h>
 #include "Game.h"
 
@@ -11,11 +11,9 @@ int WINAPI WinMain(
 	LPSTR lpCmdLine,			// Command line params
 	int nCmdShow)				// How the window should be shown (we ignore this)
 {
+
 #if defined(DEBUG) | defined(_DEBUG)
-	// Enable memory leak detection as a quick and dirty
-	// way of determining if we forgot to clean something up
-	//  - You may want to use something more advanced, like Visual Leak Detector
-	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
 	// Ensure "Current Directory" (relative path) is always the .exe's folder

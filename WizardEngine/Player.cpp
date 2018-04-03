@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <iostream>
+#include "override_new.h"
 
 using namespace DirectX;
 
@@ -25,7 +26,7 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_nActiveSpell = 0;
 	
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &SpellTwoTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -35,12 +36,12 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	sd.MaxAnisotropy = 16;
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
-	device->CreateSamplerState(&sd, &Sampler);
+	device->CreateSamplerState(&sd, &sampler);
 
-	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, Sampler);
+	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
 	meshSpellOne = new Mesh("..//..//Assets//Models//melon.obj", device);
 
-	matSpellTwo = new Material(vertexShader, pixelShader, SpellTwoTexture, Sampler);
+	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
 	meshSpellTwo = new Mesh("..//..//Assets//Models//melon.obj", device);
 
 	entityOneSpeed = 3.5;
@@ -62,6 +63,15 @@ Player::~Player()
 		delete EntitiesThree[i];
 	}
 
+	delete meshSpellOne;
+	delete meshSpellTwo;
+
+	delete matSpellOne;
+	delete matSpellTwo;
+
+	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
+	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
+	
 }
 
 void Player::Update(float delt)
@@ -194,7 +204,7 @@ void Player::SpellOne()
 {
 	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	EntitiesOne.push_back((new Entity(meshSpellOne, matSpellOne))->SetPosition(m_vPos)->SetScale(XMFLOAT3(.05, .05, .05)));
+	EntitiesOne.push_back((new Entity(meshSpellOne, matSpellOne))->SetPosition(m_vPos)->SetScale(XMFLOAT3(.05f, .05f, .05f)));
 	EntitiesOne[EntitiesOne.size() - 1]->velocity = m_Camera->GetForward();
 	
 }
@@ -214,7 +224,7 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	EntitiesTwo.push_back((new Entity(meshSpellTwo, matSpellTwo))->SetPosition(offsetby)->SetScale(XMFLOAT3(.10, .10, .10)));
+	EntitiesTwo.push_back((new Entity(meshSpellTwo, matSpellTwo))->SetPosition(offsetby)->SetScale(XMFLOAT3(.10f, .10f, .10f)));
 
 	EntitiesTwo[EntitiesTwo.size() - 1]->velocity = XMFLOAT3(0, wallRiseSpeed, 0);
 	

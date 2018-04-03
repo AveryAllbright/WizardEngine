@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include <fstream>
+#include "override_new.h"
 
 
 Mesh::Mesh(Vertex * a_pVertex, int a_nVertexCount, UINT * a_pIndices, int a_nIndexCount, ID3D11Device * a_pDevice)
@@ -183,7 +184,7 @@ Mesh::Mesh(char * a_cFileName, ID3D11Device * a_pDevice)
 Mesh::~Mesh()
 {
 	if (m_pVertBuffer) { m_pVertBuffer->Release(); m_pVertBuffer = 0; }
-	if (m_pIndexBuffer) { m_pIndexBuffer->Release(); }
+	if (m_pIndexBuffer) { m_pIndexBuffer->Release(); m_pIndexBuffer = 0; }
 }
 
 ID3D11Buffer* Mesh::GetVertexBuffer()

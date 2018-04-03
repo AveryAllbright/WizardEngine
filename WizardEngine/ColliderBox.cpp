@@ -1,4 +1,5 @@
 #include "ColliderBox.h"
+#include "override_new.h"
 
 ColliderBox::ColliderBox(DirectX::XMFLOAT3 center)
 {

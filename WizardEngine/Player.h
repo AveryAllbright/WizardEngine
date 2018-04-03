@@ -47,9 +47,9 @@ private:
 	Material* matSpellThree;
 
 	ID3D11ShaderResourceView* spellOneTexture;
-	ID3D11ShaderResourceView* SpellTwoTexture;
+	ID3D11ShaderResourceView* spellTwoTexture;
 
-	ID3D11SamplerState* Sampler;
+	ID3D11SamplerState* sampler;
 
 	DirectX::XMFLOAT4X4 world;
 
