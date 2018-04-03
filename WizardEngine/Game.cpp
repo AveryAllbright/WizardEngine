@@ -218,26 +218,6 @@ void Game::CreateModels() {
 	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj",  device);
 	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
 
-	#pragma region melonCollisionTest
-	Entity* melon1 = new Entity(melonMesh, melonMaterial);
-	Entities.push_back(melon1);
-	melon1->SetScale(XMFLOAT3(.125, .125, .125));
-
-	ColliderBox* melonCollider = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
-	melonCollider->isTrigger = false;
-	melon1->AddComponent(melonCollider);
-	melonCollider->onCollisionEnterFunction = &Entity::HandleCollision;
-
-	Entity* melon2 = new Entity(melonMesh, melonMaterial);
-	Entities.push_back(melon2);
-	melon2->SetScale(XMFLOAT3(.125, .125, .125));
-
-	ColliderBox* melonCollider2 = new ColliderBox(DirectX::XMFLOAT3(0, 0, 0));
-	melonCollider2->isTrigger = false;
-	melon2->AddComponent(melonCollider2);
-	melonCollider2->onCollisionEnterFunction = &Entity::HandleCollision;
-	#pragma endregion
-
 	// ------------------------
 	// Create a ring of columns
 	// ------------------------
@@ -289,15 +269,8 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	for (UINT i = 0; i < Entities.size(); i++)
-	{
 		Entities[i]->Update(deltaTime);
-	}
-	DirectX::XMFLOAT3 e1pos = Entities[1]->GetPosition();
-	float speed = 10;
-	float change = (float)sinf(totalTime * speed) * 4.f;
-	e1pos.x = change;
-	Entities[1]->getComponent<ColliderBox>()->SetCenter(e1pos);
-	Entities[1]->SetPosition(e1pos);
+
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();

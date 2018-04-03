@@ -156,10 +156,3 @@ void Entity::ScaleBy(XMFLOAT3 a_vScale)
 	m_vScale.y += a_vScale.y;
 	m_vScale.z += a_vScale.z;
 }
-
-void Entity::HandleCollision(Collider* mainobj, Collider* other)
-{
-	printf("hi");
-}
-
-

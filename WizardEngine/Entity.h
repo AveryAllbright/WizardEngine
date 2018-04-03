@@ -48,8 +48,6 @@ public:
 	virtual Entity* Start();
 	virtual bool Update(float deltaTime);
 
-	static void HandleCollision(Collider*, Collider*);
-
 	Mesh* mesh = nullptr;
 	Material* material = nullptr;
 	DirectX::XMFLOAT3 velocity;
