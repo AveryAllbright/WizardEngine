@@ -83,7 +83,5 @@ private:
 	Player* player;
 
 	DirectionalLight DirLight;
-	DirectionalLight TopLight;
-
 };
 

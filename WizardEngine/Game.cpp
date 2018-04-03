@@ -106,12 +106,8 @@ void Game::Init()
 	CreateModels();
 
 	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
-	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.1f, 0.1f, 1.f);
-	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
-
-	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
-	TopLight.DiffuseColour = XMFLOAT4(0.1f, 0.1f, .5f, 1.f);
-	TopLight.Direction     = XMFLOAT3(0.f, 2.f, 0.f);
+	DirLight.DiffuseColour = XMFLOAT4(201.f/255.f, 226.f/255.f, 255.f/255.f, 1.f);
+	DirLight.Direction     = XMFLOAT3(1.f, -1.f, 1.f);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -195,16 +191,19 @@ void Game::CreateModels() {
 	// Create a ring of columns
 	// ------------------------
 	const int RING_RADIUS = 30;
-	const int COLUMN_COUNT = 5;
+	const int COLUMN_COUNT = 10;
 
 	// How many degrees between the columns
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 	
+	// The model transform is off by ~ this amount
+	const float MODEL_VERTICAL_OFFSET = 1.5f;
+
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
 		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
 		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
 		Entity* column = new Entity(columnMesh, marbleMaterial);
-		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
+		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight + MODEL_VERTICAL_OFFSET, zPosition))
 			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
 	}
@@ -275,8 +274,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	ID3D11Buffer* vert;
 
-	TopLight.DiffuseColour.x -= sin(deltaTime / 6);
-
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
 
@@ -288,8 +285,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
 		
-		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
-
 		pixelShader->SetData(			"light",			&DirLight,			sizeof(DirectionalLight)		);
 
 		pixelShader->CopyAllBufferData();
@@ -316,8 +311,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i]->material->GetSRV());
 
-		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
-
 		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
 
 		pixelShader->CopyAllBufferData();
@@ -343,8 +336,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i]->material->GetSRV());
-
-		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
 		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
 
