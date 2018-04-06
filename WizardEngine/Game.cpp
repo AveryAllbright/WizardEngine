@@ -70,6 +70,7 @@ Game::~Game()
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
+	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
 	
 
 	delete basicGeometry.cone;
@@ -102,6 +103,13 @@ void Game::Init()
 
 	Cam = new Camera(width, height);
 	player = new Player(Cam, device, context, vertexShader, pixelShader);
+	terrain = new Terrain();
+	bool result = terrain->InitialiseTerrain(device, "..//..//Assets//Setup.txt");
+	if (!result)
+	{
+		printf("Could not initialise terrain");
+		return;
+	}
 
 	CreateBasicGeometry();
 	CreateMaterials();
@@ -214,15 +222,15 @@ void Game::CreateModels() {
 	// ------------------------
 	// Create the floor tiles
 	// ------------------------
-	for (float i = -5; i < 5; i++)
-	{
-		for (float j = -5; j < 5; j++)
-		{
-			Entity* floorPiece = new Entity(floorMesh, melonMaterial);
-			floorPiece->SetPosition(XMFLOAT3(i * 20, -player->playerHeight, j * 20));
-			Entities.push_back(floorPiece);
-		}
-	}
+	//for (float i = -5; i < 5; i++)
+	//{
+	//	for (float j = -5; j < 5; j++)
+	//	{
+	//		Entity* floorPiece = new Entity(floorMesh, melonMaterial);
+	//		floorPiece->SetPosition(XMFLOAT3(i * 20, -player->playerHeight, j * 20));
+	//		Entities.push_back(floorPiece);
+	//	}
+	//}
 }
 
 // --------------------------------------------------------
@@ -260,7 +268,7 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	const float color[4] = { 0.f, 0.f, 0.f, 0.0f };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -281,7 +289,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
-
+	
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 
@@ -366,6 +374,9 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
+	terrain->Render(context);
+	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
+	
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
 

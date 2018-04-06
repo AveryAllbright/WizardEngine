@@ -127,6 +127,7 @@
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="SpatialSound.cpp" />
+    <ClCompile Include="Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="SpatialSound.h" />
+    <ClInclude Include="Terrain.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>

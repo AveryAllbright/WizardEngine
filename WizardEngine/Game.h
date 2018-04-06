@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Player.h"
+#include "Terrain.h"
 
 struct BasicGeometry {
 	Mesh* cone;
@@ -85,5 +86,6 @@ private:
 	DirectionalLight DirLight;
 	DirectionalLight TopLight;
 
-};
+	Terrain* terrain;
 
+};
