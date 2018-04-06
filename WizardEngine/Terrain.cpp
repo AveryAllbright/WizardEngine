@@ -375,12 +375,12 @@ void Terrain::SetTerrainCoordinates()
 			index = (m_nTerrainWidth * j) + i;
 
 			//set X and Z coordinates
-			m_HeightMap[index].x = (float)i;
-			m_HeightMap[index].z = -(float)j;
+			m_HeightMap[index].x = (float)i * m_fHeightScale;
+			m_HeightMap[index].z = -(float)j * m_fHeightScale;
 
 			m_HeightMap[index].z += (float)(m_nTerrainHeight - 1);
 
-			m_HeightMap[index].y /= m_fHeightScale;
+			m_HeightMap[index].y /= (m_fHeightScale / 8);
 		}
 	}
 	return;
