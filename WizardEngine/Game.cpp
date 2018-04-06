@@ -94,13 +94,15 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	Cam = new Camera(width, height);
-	player = new Player(Cam, device, context, vertexShader, pixelShader);
-
+	
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
+
+	Cam = new Camera(width, height);
+	player = new Player(Cam, device, context, vertexShader, pixelShader);
+
 	CreateBasicGeometry();
 	CreateMaterials();
 	CreateModels();
