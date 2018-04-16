@@ -218,19 +218,6 @@ void Game::CreateModels() {
 			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
 	}
-
-	// ------------------------
-	// Create the floor tiles
-	// ------------------------
-	//for (float i = -5; i < 5; i++)
-	//{
-	//	for (float j = -5; j < 5; j++)
-	//	{
-	//		Entity* floorPiece = new Entity(floorMesh, melonMaterial);
-	//		floorPiece->SetPosition(XMFLOAT3(i * 20, -player->playerHeight, j * 20));
-	//		Entities.push_back(floorPiece);
-	//	}
-	//}
 }
 
 // --------------------------------------------------------
@@ -289,7 +276,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
-	
+
+		
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 
@@ -317,6 +305,33 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
+
+	
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+
+	XMFLOAT4X4 m_mWorld;
+	XMMATRIX tr = XMMatrixTranslation(0, 0, 0);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
+	XMMATRIX sc = XMMatrixScaling(2,2,2);
+
+	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
+
+	vertexShader->SetMatrix4x4("world", m_mWorld);
+	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
+	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+
+	pixelShader->SetSamplerState("basicSampler", sampler);
+	pixelShader->SetShaderResourceView("diffuseTexture",melonTexture);
+
+	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
+
+	pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
+
+	pixelShader->CopyAllBufferData();
+
+	terrain->Render(context);
+	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
 
 	for (UINT i = 0; i < player->EntitiesOne.size(); i++)
 	{
@@ -374,8 +389,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
-	terrain->Render(context);
-	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
+	
 	
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
