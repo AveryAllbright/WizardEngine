@@ -335,16 +335,12 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
-
-
-	
-
-	
+		
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
 	XMFLOAT4X4 m_mWorld;
-	XMMATRIX tr = XMMatrixTranslation(0, 0, 0);
+	XMMATRIX tr = XMMatrixTranslation(-10, -27, 10);
 	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
 	XMMATRIX sc = XMMatrixScaling(2,2,2);
 
@@ -353,6 +349,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->SetMatrix4x4("world", m_mWorld);
 	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
 	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+
+	vertexShader->CopyAllBufferData();
 
 	pixelShader->SetSamplerState("basicSampler", sampler);
 	pixelShader->SetShaderResourceView("diffuseTexture",melonTexture);
@@ -365,6 +363,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
+
+	
 
 	for (UINT i = 0; i < player->Entities.size(); i++)
 
@@ -397,7 +397,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		
 	}
-	
 	
 
 	
