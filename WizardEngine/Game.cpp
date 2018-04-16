@@ -50,6 +50,8 @@ Game::~Game()
 	delete pixelShader;
 	delete skyVS;
 	delete skyPS;
+	delete ParticleVS;
+	delete ParticlePS;
 
 	// Meshes
 	delete melonMesh;
@@ -102,7 +104,7 @@ void Game::Init()
 	LoadShaders();
 
 	Cam = new Camera(width, height);
-	player = new Player(Cam, device, context, vertexShader, pixelShader);
+	player = new Player(Cam, device, context, vertexShader, pixelShader, ParticleVS, ParticlePS);
 	terrain = new Terrain();
 	bool result = terrain->InitialiseTerrain(device, "..//..//Assets//Setup.txt");
 	if (!result)
@@ -140,6 +142,28 @@ void Game::Init()
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&ds, &skyDepth);
+
+	//device states for particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
 }
 
 // --------------------------------------------------------
@@ -161,6 +185,12 @@ void Game::LoadShaders()
 
 	skyPS = new SimplePixelShader(device, context);
 	skyPS->LoadShaderFile(L"SkyPS.cso");
+
+	ParticleVS = new SimpleVertexShader(device, context);
+	ParticleVS->LoadShaderFile(L"ParticleVS.cso");
+
+	ParticlePS = new SimplePixelShader(device, context);
+	ParticlePS->LoadShaderFile(L"ParticlePS.cso");
 }
 
 // --------------------------------------------------------
@@ -318,13 +348,14 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
-	for (UINT i = 0; i < player->EntitiesOne.size(); i++)
+	for (UINT i = 0; i < player->Entities.size(); i++)
 	{
 		
-		player->EntitiesOne[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
+		
+		player->Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesOne[i]->material->GetSRV());
+		pixelShader->SetShaderResourceView("diffuseTexture", player->Entities[i]->material->GetSRV());
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -335,44 +366,20 @@ void Game::Draw(float deltaTime, float totalTime)
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		vert = player->EntitiesOne[i]->mesh->GetVertexBuffer();
+		vert = player->Entities[i]->mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesOne[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+		context->IASetIndexBuffer(player->Entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 		context->DrawIndexed(
-			player->EntitiesOne[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+			player->Entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
+
+		
 	}
-
-	for (UINT i = 0; i < player->EntitiesTwo.size(); i++)
-	{
-
-		player->EntitiesTwo[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
-
-		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->EntitiesTwo[i]->material->GetSRV());
-
-		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
-
-		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
-
-		pixelShader->CopyAllBufferData();
-
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-
-		vert = player->EntitiesTwo[i]->mesh->GetVertexBuffer();
-
-		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->EntitiesTwo[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		context->DrawIndexed(
-			player->EntitiesTwo[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-	}
+	
+	
 
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
@@ -398,6 +405,18 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);
+
+	for (UINT i = 0; i < player->Entities.size(); i++)
+	{
+		float blend[4] = { 1,1,1,1 };
+		context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+		context->OMSetDepthStencilState(particleDepthState, 0);
+
+		player->Entities[i]->Draw(context, Cam);
+
+		context->OMSetBlendState(0, blend, 0xffffffff);
+		context->OMSetDepthStencilState(0, 0);
+	}
 	
 	swapChain->Present(0, 0);
 }

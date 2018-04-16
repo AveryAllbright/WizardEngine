@@ -52,6 +52,8 @@ private:
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
+	SimpleVertexShader* ParticleVS;
+	SimplePixelShader* ParticlePS;
 
 	BasicGeometry basicGeometry;
 
@@ -87,5 +89,11 @@ private:
 	DirectionalLight TopLight;
 
 	Terrain* terrain;
+
+	//for particles
+	// Particle stuff
+	ID3D11ShaderResourceView* particleTexture;
+	ID3D11DepthStencilState* particleDepthState;
+	ID3D11BlendState* particleBlendState;
 
 };

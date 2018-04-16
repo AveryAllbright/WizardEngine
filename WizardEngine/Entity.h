@@ -10,6 +10,7 @@ class Collider;
 class Entity : public Object {
 public:
 	Entity(Mesh* a_pMesh, Material* a_pMaterial);
+	Entity();
 	~Entity();
 
 	// Accessors 
@@ -18,11 +19,11 @@ public:
 	DirectX::XMFLOAT3 GetScale();
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 
-	Entity* SetPosition(DirectX::XMFLOAT3 a_vPos);
-	Entity* SetRotation(DirectX::XMFLOAT3 a_vRotation);
-	Entity* SetScale(DirectX::XMFLOAT3 a_vScale);
+	virtual Entity* SetPosition(DirectX::XMFLOAT3 a_vPos);
+	virtual Entity* SetRotation(DirectX::XMFLOAT3 a_vRotation);
+	virtual Entity* SetScale(DirectX::XMFLOAT3 a_vScale);
 
-	void PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj);
+	virtual void PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj);
 
 	void Move(DirectX::XMFLOAT3 a_vDisplaceBy);
 	void MoveForward(float a_fDisplaceBy);
@@ -47,7 +48,7 @@ public:
 	Entity* AddComponent(Component* component);
 	virtual Entity* Start();
 	virtual bool Update(float deltaTime);
-
+	virtual void UpdateWorldView();
 	Mesh* mesh = nullptr;
 	Material* material = nullptr;
 	DirectX::XMFLOAT3 velocity;
@@ -56,7 +57,7 @@ private:
 	DirectX::XMFLOAT3 m_vScale;
 	DirectX::XMFLOAT3 m_vPos;
 	DirectX::XMFLOAT4X4 m_mWorld;
-	void UpdateWorldView();
+	
 	bool outdatedMatrix = false;
 };
 

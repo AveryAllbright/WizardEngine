@@ -15,6 +15,11 @@ Entity::Entity(Mesh * mesh, Material* material)
 	UpdateWorldView();
 }
 
+Entity::Entity()
+{
+	
+}
+
 Entity::~Entity() {
 	for (int i = 0; i < components.size(); i++)
 	{
