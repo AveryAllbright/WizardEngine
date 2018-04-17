@@ -235,7 +235,7 @@ void Game::CreateMaterials() {
 
 	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler, XMFLOAT2(1.0f, 1.0f));
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
-	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, XMFLOAT2(1.0f, 1.0f));
+	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 }
 
 void Game::CreateModels() {
@@ -389,6 +389,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", player->Entities[i]->material->GetSRV());
+		if (player->Entities[i]->material->m_hasNormal) {
+			pixelShader->SetShaderResourceView("normalTexture", player->Entities[i]->material->GetSRVNormal());
+		}
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 

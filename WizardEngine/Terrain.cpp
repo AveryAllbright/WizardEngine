@@ -198,8 +198,6 @@ void Terrain::RenderBuffers(ID3D11DeviceContext* context)
 	context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	
-
-	
 	return;
 }
 
