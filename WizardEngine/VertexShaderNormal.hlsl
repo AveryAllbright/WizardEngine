@@ -34,7 +34,6 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT;
-	float3 worldPos		: POSITION; // The world position of this vertex
 };
 
 VertexToPixel main(VertexShaderInput input)
@@ -49,6 +48,8 @@ VertexToPixel main(VertexShaderInput input)
 	output.normal = normalize(mul(input.normal, (float3x3)world));
 
 	output.tangent = normalize(mul(input.tangent, (float3x3)world));
+
+	//output.uv = input.uv;
 
 	output.uv.x = input.uv.x * uvTiling.x;
 	output.uv.y = input.uv.y * uvTiling.y;

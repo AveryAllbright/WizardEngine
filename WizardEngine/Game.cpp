@@ -30,6 +30,8 @@ Game::Game(HINSTANCE hInstance)
 	// Initialize fields
 	vertexShader = 0;
 	pixelShader = 0;
+	normalVS = 0;
+	normalPS = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -52,6 +54,8 @@ Game::~Game()
 	delete skyPS;
 	delete ParticleVS;
 	delete ParticlePS;
+	delete normalVS;
+	delete normalPS;
 
 	// Meshes
 	delete melonMesh;
@@ -121,11 +125,11 @@ void Game::Init()
 	CreateModels();
 
 	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
-	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.1f, 0.1f, 1.f);
+	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.5f, 0.5f, 1.f);
 	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
 
 	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
-	TopLight.DiffuseColour = XMFLOAT4(0.1f, 0.1f, .5f, 1.f);
+	TopLight.DiffuseColour = XMFLOAT4(0.5f, 0.5f, .5f, 1.f);
 	TopLight.Direction     = XMFLOAT3(0.f, 2.f, 0.f);
 
 	// Tell the input assembler stage of the pipeline what kind of
@@ -326,17 +330,16 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 		
-		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
-		if (Entities[i]->material->m_hasNormal) {
-			pixelShader->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
-		}
+		Entities[i]->material->GetPixelShader()->SetSamplerState("basicSampler", sampler);
+		Entities[i]->material->GetPixelShader()->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
+		Entities[i]->material->GetPixelShader()->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
+
 		
-		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
+		Entities[i]->material->GetPixelShader()->SetData("topLight", &TopLight, sizeof(DirectionalLight) );
 
-		pixelShader->SetData(			"light",			&DirLight,			sizeof(DirectionalLight)		);
+		Entities[i]->material->GetPixelShader()->SetData("light", &DirLight, sizeof(DirectionalLight) );
 
-		pixelShader->CopyAllBufferData();
+		Entities[i]->material->GetPixelShader()->CopyAllBufferData();
 
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;

@@ -10,6 +10,7 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT;
+
 };
 
 struct DirectionalLight
@@ -30,12 +31,13 @@ cbuffer externalData : register(b1)
 	DirectionalLight topLight;
 };
 
-float4 LightValue(DirectionalLight newLight, VertexToPixel input)
+float4 LightValue(DirectionalLight newLight, float3 aNormal)
 {
-	input.normal = normalize(input.normal);
+	float3 tempNormal = normalize(aNormal);
 
 	float3 toLight = normalize(newLight.Direction);
-	float NdotL = dot(input.normal, -toLight);
+
+	float NdotL = dot(tempNormal, -toLight);
 	NdotL = saturate(NdotL);
 
 	return newLight.AmbientColour + (newLight.DiffuseColour * NdotL);
@@ -63,10 +65,12 @@ float3 TangentToWorldSpace(float3 aTangent, float3 aNormal, float2 aInput)
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float3 finalNormal = TangentToWorldSpace(normalize(input.tangent), input.normal, input.uv);
+	input.normal = TangentToWorldSpace(normalize(input.tangent), normalize(input.normal), input.uv);
 
-	float4 surfaceColour = diffuseTexture.Sample(basicSampler, finalNormal);
+	float4 finalLight = (LightValue(light, input.normal) + LightValue(topLight, input.normal));
 
-	return  float4(surfaceColour.rgb * (LightValue(light, input) + LightValue(topLight, input)), 1);
+	float4 surfaceColour = diffuseTexture.Sample(basicSampler, input.normal);
+
+	return  surfaceColour * finalLight;
 }
 
