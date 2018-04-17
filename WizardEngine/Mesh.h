@@ -28,5 +28,6 @@ public:
 	int GetIndexCount();
 
 	void CreateBuffers(Vertex* a_pVertex, int a_nVertexCount, UINT* a_pIndices, int a_nIndexCount, ID3D11Device* a_pDevice);
+	void CalculateTangents(Vertex * verts, int numVerts, UINT * indices, int numIndices);
 };
 
