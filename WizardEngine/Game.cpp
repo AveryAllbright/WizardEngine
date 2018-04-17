@@ -61,6 +61,7 @@ Game::~Game()
 	// Materials
 	delete melonMaterial;
 	delete marbleMaterial;
+	delete sandMaterial;
 	
 	delete Cam;
 	delete player;
@@ -72,6 +73,8 @@ Game::~Game()
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
+	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
+	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
 	
 
@@ -191,6 +194,12 @@ void Game::LoadShaders()
 
 	ParticlePS = new SimplePixelShader(device, context);
 	ParticlePS->LoadShaderFile(L"ParticlePS.cso");
+
+	normalVS = new SimpleVertexShader(device, context);
+	normalVS->LoadShaderFile(L"VertexShaderNormal.cso");
+
+	normalPS = new SimplePixelShader(device, context);
+	normalPS->LoadShaderFile(L"PixelShaderNormal.cso");
 }
 
 // --------------------------------------------------------
@@ -210,6 +219,9 @@ void Game::CreateMaterials() {
 
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sand.jpg", 0, &sandDiffuse);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
+
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -221,8 +233,9 @@ void Game::CreateMaterials() {
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler);
-	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler);
+	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler, XMFLOAT2(1.0f, 1.0f));
+	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
+	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, XMFLOAT2(1.0f, 1.0f));
 }
 
 void Game::CreateModels() {
@@ -315,6 +328,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
+		if (Entities[i]->material->m_hasNormal) {
+			pixelShader->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
+		}
 		
 		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
 
@@ -353,7 +369,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->CopyAllBufferData();
 
 	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("diffuseTexture",melonTexture);
+	pixelShader->SetShaderResourceView("diffuseTexture", melonTexture);
 
 	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -369,8 +385,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (UINT i = 0; i < player->Entities.size(); i++)
 
 	{
-		
-		
 		player->Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
@@ -397,9 +411,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		
 	}
-	
-
-	
 	
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();

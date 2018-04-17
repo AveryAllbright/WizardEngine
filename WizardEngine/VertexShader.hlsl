@@ -10,6 +10,7 @@ cbuffer externalData : register(b0)
 	matrix world;
 	matrix view;
 	matrix projection;
+	float2 uvTiling;
 };
 
 // Struct representing a single vertex worth of data
@@ -27,6 +28,7 @@ struct VertexShaderInput
 	float3 position		: POSITION;     // XYZ position
 	float3 normal		: NORMAL;		
 	float2 uv			: TEXCOORD;
+	float3 tangent		: TANGENT;
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -74,7 +76,8 @@ VertexToPixel main( VertexShaderInput input )
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 	output.normal = mul(input.normal, (float3x3)world);
-	output.uv = input.uv;
+	output.uv.x = input.uv.x * uvTiling.x;
+	output.uv.y = input.uv.y * uvTiling.y;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)
