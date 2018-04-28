@@ -10,6 +10,10 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+const float TERRAIN_MOVE[] = { 0, 0, 0};
+const float TERRAIN_SCALE[] = { 1, 1, 1 };
+
+
 // --------------------------------------------------------
 // Constructor
 //
@@ -294,6 +298,41 @@ void Game::Update(float deltaTime, float totalTime)
 
 	Cam->Update(deltaTime, totalTime);
 	player->Update(deltaTime);
+
+	//Set Player Heights based on Terrain Heights
+
+	//Descale the Terrain
+	XMFLOAT3 TruPos = Cam->GetPosition();
+	XMFLOAT3 playerLoc = TruPos;
+	playerLoc.x /= TERRAIN_SCALE[0];
+	playerLoc.y /= TERRAIN_SCALE[1];
+	playerLoc.z /= TERRAIN_SCALE[2];
+
+	std::cout << TruPos.x << ' ' <<  TruPos.y << ' ' << TruPos.z << endl;
+
+	//Detranslate the Terrain
+	playerLoc.x -= TERRAIN_MOVE[0];
+	playerLoc.y -= TERRAIN_MOVE[1];
+	playerLoc.z += TERRAIN_MOVE[2];
+
+	float height = terrain->GetHeight(playerLoc.x, playerLoc.z);
+
+	std::cout << height << endl;
+
+	if (playerLoc.y < height)
+	{
+		playerLoc.y = height * TERRAIN_SCALE[1];
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+		player->m_bGrounded = true;
+	}
+
+	else if (playerLoc.y > height && player->m_bGrounded)
+	{
+		playerLoc.y = height;
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+
+	}
+
 }
 
 // --------------------------------------------------------
@@ -359,9 +398,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetShader();
 
 	XMFLOAT4X4 m_mWorld;
-	XMMATRIX tr = XMMatrixTranslation(-10, -27, 10);
+	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
 	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
-	XMMATRIX sc = XMMatrixScaling(2,2,2);
+	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
 

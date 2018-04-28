@@ -28,7 +28,7 @@ private:
 	bool m_bPreviouslyGrounded;
 
 	bool m_Jumping;
-	bool m_bGrounded;
+	
 
 	float m_fMoveSpeed;
 
@@ -79,5 +79,6 @@ public:
 
 	void SetActiveSpell(float input);
 	float playerHeight;
+	bool m_bGrounded;
 };
 

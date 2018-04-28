@@ -100,4 +100,6 @@ private:
 	ID3D11DepthStencilState* particleDepthState;
 	ID3D11BlendState* particleBlendState;
 
+	
+
 };
