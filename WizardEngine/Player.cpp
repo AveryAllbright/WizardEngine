@@ -13,10 +13,10 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_bGrounded = true;
 	m_bJump = false;
 
-	m_fWalkSpeed = 3.f;
+	m_fWalkSpeed = 18.f;
 	m_fRunSpeed = 6.0f;
 
-	m_fJumpSpeed = .008f;
+	m_fJumpSpeed = .012f;
 
 	m_fStickToGroundForce = 9.81f;
 	m_fGravityMult = 1.f;
@@ -116,7 +116,7 @@ void Player::Update(float delt)
 	m_fMoveSpeed = m_bIsWalking ? m_fWalkSpeed : m_fRunSpeed;
 	m_Camera->SetMoveSpeed(m_fMoveSpeed);
 
-	if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
+	//if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
 
   	if (!m_bPreviouslyGrounded && m_bGrounded)
 	{

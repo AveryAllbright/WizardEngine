@@ -54,6 +54,8 @@ private:
 	SimplePixelShader* skyPS;
 	SimpleVertexShader* ParticleVS;
 	SimplePixelShader* ParticlePS;
+	SimpleVertexShader* normalVS;
+	SimplePixelShader* normalPS;
 
 	BasicGeometry basicGeometry;
 
@@ -71,6 +73,8 @@ private:
 	
 	ID3D11ShaderResourceView* melonTexture;
 	ID3D11ShaderResourceView* marbleTexture;
+	ID3D11ShaderResourceView* sandDiffuse;
+	ID3D11ShaderResourceView* sandNormal;
 	ID3D11ShaderResourceView* skySRV;
 
 	ID3D11RasterizerState* skyRast;
@@ -80,7 +84,7 @@ private:
 	
 	Material* melonMaterial;
 	Material* marbleMaterial;
-
+	Material* sandMaterial;
 
 	Camera* Cam;
 	Player* player;
@@ -95,5 +99,7 @@ private:
 	ID3D11ShaderResourceView* particleTexture;
 	ID3D11DepthStencilState* particleDepthState;
 	ID3D11BlendState* particleBlendState;
+
+	
 
 };

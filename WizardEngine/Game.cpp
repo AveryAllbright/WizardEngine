@@ -10,6 +10,10 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+const float TERRAIN_MOVE[] = { 0, 0, 0};
+const float TERRAIN_SCALE[] = { 1, 1, 1 };
+
+
 // --------------------------------------------------------
 // Constructor
 //
@@ -30,6 +34,8 @@ Game::Game(HINSTANCE hInstance)
 	// Initialize fields
 	vertexShader = 0;
 	pixelShader = 0;
+	normalVS = 0;
+	normalPS = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -52,6 +58,8 @@ Game::~Game()
 	delete skyPS;
 	delete ParticleVS;
 	delete ParticlePS;
+	delete normalVS;
+	delete normalPS;
 
 	// Meshes
 	delete melonMesh;
@@ -61,6 +69,7 @@ Game::~Game()
 	// Materials
 	delete melonMaterial;
 	delete marbleMaterial;
+	delete sandMaterial;
 	
 	delete Cam;
 	delete player;
@@ -72,6 +81,8 @@ Game::~Game()
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
+	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
+	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
 	
 
@@ -118,11 +129,11 @@ void Game::Init()
 	CreateModels();
 
 	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
-	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.1f, 0.1f, 1.f);
+	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.5f, 0.5f, 1.f);
 	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
 
 	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
-	TopLight.DiffuseColour = XMFLOAT4(0.1f, 0.1f, .5f, 1.f);
+	TopLight.DiffuseColour = XMFLOAT4(0.5f, 0.5f, .5f, 1.f);
 	TopLight.Direction     = XMFLOAT3(0.f, 2.f, 0.f);
 
 	// Tell the input assembler stage of the pipeline what kind of
@@ -191,6 +202,12 @@ void Game::LoadShaders()
 
 	ParticlePS = new SimplePixelShader(device, context);
 	ParticlePS->LoadShaderFile(L"ParticlePS.cso");
+
+	normalVS = new SimpleVertexShader(device, context);
+	normalVS->LoadShaderFile(L"VertexShaderNormal.cso");
+
+	normalPS = new SimplePixelShader(device, context);
+	normalPS->LoadShaderFile(L"PixelShaderNormal.cso");
 }
 
 // --------------------------------------------------------
@@ -210,6 +227,9 @@ void Game::CreateMaterials() {
 
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sand.jpg", 0, &sandDiffuse);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
+
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -221,8 +241,9 @@ void Game::CreateMaterials() {
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler);
-	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler);
+	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler, XMFLOAT2(1.0f, 1.0f));
+	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
+	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 }
 
 void Game::CreateModels() {
@@ -277,6 +298,41 @@ void Game::Update(float deltaTime, float totalTime)
 
 	Cam->Update(deltaTime, totalTime);
 	player->Update(deltaTime);
+
+	//Set Player Heights based on Terrain Heights
+
+	//Descale the Terrain
+	XMFLOAT3 TruPos = Cam->GetPosition();
+	XMFLOAT3 playerLoc = TruPos;
+	playerLoc.x /= TERRAIN_SCALE[0];
+	playerLoc.y /= TERRAIN_SCALE[1];
+	playerLoc.z /= TERRAIN_SCALE[2];
+
+	std::cout << TruPos.x << ' ' <<  TruPos.y << ' ' << TruPos.z << endl;
+
+	//Detranslate the Terrain
+	playerLoc.x -= TERRAIN_MOVE[0];
+	playerLoc.y -= TERRAIN_MOVE[1];
+	playerLoc.z += TERRAIN_MOVE[2];
+
+	float height = terrain->GetHeight(playerLoc.x, playerLoc.z);
+
+	std::cout << height << endl;
+
+	if (playerLoc.y < height)
+	{
+		playerLoc.y = height * TERRAIN_SCALE[1];
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+		player->m_bGrounded = true;
+	}
+
+	else if (playerLoc.y > height && player->m_bGrounded)
+	{
+		playerLoc.y = height;
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+
+	}
+
 }
 
 // --------------------------------------------------------
@@ -313,14 +369,16 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 		
-		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
+		Entities[i]->material->GetPixelShader()->SetSamplerState("basicSampler", sampler);
+		Entities[i]->material->GetPixelShader()->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
+		Entities[i]->material->GetPixelShader()->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
+
 		
-		pixelShader->SetData(			"topLight",			&TopLight,			sizeof(DirectionalLight)		);
+		Entities[i]->material->GetPixelShader()->SetData("topLight", &TopLight, sizeof(DirectionalLight) );
 
-		pixelShader->SetData(			"light",			&DirLight,			sizeof(DirectionalLight)		);
+		Entities[i]->material->GetPixelShader()->SetData("light", &DirLight, sizeof(DirectionalLight) );
 
-		pixelShader->CopyAllBufferData();
+		Entities[i]->material->GetPixelShader()->CopyAllBufferData();
 
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
@@ -335,18 +393,14 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
-
-
-	
-
-	
+		
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
 	XMFLOAT4X4 m_mWorld;
-	XMMATRIX tr = XMMatrixTranslation(0, 0, 0);
+	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
 	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
-	XMMATRIX sc = XMMatrixScaling(2,2,2);
+	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
 
@@ -354,8 +408,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
 	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
 
+	vertexShader->CopyAllBufferData();
+
 	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("diffuseTexture",melonTexture);
+	pixelShader->SetShaderResourceView("diffuseTexture", melonTexture);
 
 	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -366,15 +422,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
 
+	
+
 	for (UINT i = 0; i < player->Entities.size(); i++)
 
 	{
-		
-		
 		player->Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		pixelShader->SetSamplerState("basicSampler", sampler);
 		pixelShader->SetShaderResourceView("diffuseTexture", player->Entities[i]->material->GetSRV());
+		if (player->Entities[i]->material->m_hasNormal) {
+			pixelShader->SetShaderResourceView("normalTexture", player->Entities[i]->material->GetSRVNormal());
+		}
 
 		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -397,10 +456,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		
 	}
-	
-	
-
-	
 	
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();

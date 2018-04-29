@@ -86,6 +86,11 @@ int Terrain::GetIndexCount()
 	return m_nIndexCount;
 }
 
+float Terrain::GetHeight(float x, float y)
+{
+	return Heights[x][y];
+}
+
 bool Terrain::InitialiseBuffer(ID3D11Device* device)
 {
 	//Create the list of vertices and indices
@@ -197,8 +202,6 @@ void Terrain::RenderBuffers(ID3D11DeviceContext* context)
 
 	context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	
-
 	
 	return;
 }
@@ -390,6 +393,13 @@ void Terrain::SetTerrainCoordinates()
 bool Terrain::BuildTerrain()
 {
 	int i, j, index, index1, index2, index3, index4;
+	float averageHeight = 0;
+
+	Heights.resize(m_nTerrainHeight);
+	for (int k = 0; k < m_nTerrainHeight; k++)
+	{
+		Heights[k].resize(m_nTerrainWidth);
+	}
 
 	//Get the Vertex Count
 	m_nVertexCount = (m_nTerrainHeight - 1) * (m_nTerrainWidth - 1) * 6;
@@ -419,37 +429,51 @@ bool Terrain::BuildTerrain()
 			m_Model[index].x = m_HeightMap[index1].x;
 			m_Model[index].y = m_HeightMap[index1].y;
 			m_Model[index].z = m_HeightMap[index1].z;
+			averageHeight += m_Model[index].y;
 			index++;
 
 			//Upper Right
 			m_Model[index].x = m_HeightMap[index2].x;
 			m_Model[index].y = m_HeightMap[index2].y;
 			m_Model[index].z = m_HeightMap[index2].z;
+			averageHeight += m_Model[index].y;
 			index++;
 
 			//Bottom Left
 			m_Model[index].x = m_HeightMap[index3].x;
 			m_Model[index].y = m_HeightMap[index3].y;
 			m_Model[index].z = m_HeightMap[index3].z;
+			averageHeight += m_Model[index].y;
 			index++;
+
+			
+
+			
+			//Second Triangle
 
 			//Bottom Left
 			m_Model[index].x = m_HeightMap[index3].x;
 			m_Model[index].y = m_HeightMap[index3].y;
 			m_Model[index].z = m_HeightMap[index3].z;
+			averageHeight += m_Model[index].y;
 			index++;
 
 			//Upper Right
 			m_Model[index].x = m_HeightMap[index2].x;
 			m_Model[index].y = m_HeightMap[index2].y;
 			m_Model[index].z = m_HeightMap[index2].z;
+			averageHeight += m_Model[index].y;
 			index++;
 
 			//Bottom Right
 			m_Model[index].x = m_HeightMap[index4].x;
 			m_Model[index].y = m_HeightMap[index4].y;
 			m_Model[index].z = m_HeightMap[index4].z;
+			averageHeight += m_Model[index].y;
 			index++;
+
+			Heights[j][i] = (averageHeight / 6);
+			averageHeight = 0;
 
 		}
 	}
@@ -466,4 +490,9 @@ void Terrain::ShutdownTerrain()
 	}
 
 	return;
+}
+
+void Terrain::GenerateHeights()
+{
+
 }

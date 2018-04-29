@@ -6,7 +6,7 @@ using namespace DirectX;
 Camera::Camera(int width, int height)
 {
 	//Default values for camera positioning
-	XMFLOAT3 position = XMFLOAT3(0, 0, -5);
+	XMFLOAT3 position = XMFLOAT3(100, 0, 100);
 
 	init(width, height, position);
 }
