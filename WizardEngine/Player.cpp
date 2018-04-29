@@ -25,7 +25,7 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	m_nActiveSpell = 0;
 	
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
 
 	D3D11_SAMPLER_DESC sd = {};
@@ -185,7 +185,7 @@ void Player::SpellOne()
 {
 	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.1,.1,.1), particleVS, particlePS , device, spellOneTexture)));
+	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01,.01,.01), particleVS, particlePS , device, spellOneTexture)));
 	
 	
 }
