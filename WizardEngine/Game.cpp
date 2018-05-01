@@ -3,6 +3,7 @@
 #include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
+#include <SimpleMath.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "override_new.h"
@@ -10,8 +11,8 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-const float TERRAIN_MOVE[] = { 0, 0, 0};
-const float TERRAIN_SCALE[] = { 1, 1, 1 };
+const float TERRAIN_MOVE[] = { 60, 0, 23};
+const float TERRAIN_SCALE[] = { .05, .05, .05 };
 
 
 // --------------------------------------------------------
@@ -262,8 +263,8 @@ void Game::CreateModels() {
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 	
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
-		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
-		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 150;
+		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 150;
 		Entity* column = new Entity(columnMesh, marbleMaterial);
 		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
 			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
@@ -304,34 +305,61 @@ void Game::Update(float deltaTime, float totalTime)
 	//Descale the Terrain
 	XMFLOAT3 TruPos = Cam->GetPosition();
 	XMFLOAT3 playerLoc = TruPos;
-	playerLoc.x /= TERRAIN_SCALE[0];
-	playerLoc.y /= TERRAIN_SCALE[1];
-	playerLoc.z /= TERRAIN_SCALE[2];
+	//playerLoc.x *= .5
+	//playerLoc.y *= .5;
+	//playerLoc.z *= .5;
 
-	std::cout << TruPos.x << ' ' <<  TruPos.y << ' ' << TruPos.z << endl;
+	
+	
+	std::cout << playerLoc.x << ' ' <<  playerLoc.y << ' ' << playerLoc.z << endl;
+	//SimpleMath::Quaternion ro(0, -1.57, 0, 0);
+	//XMVECTOR playVec = XMLoadFloat3(&playerLoc);
+	//playVec = XMVector3Rotate(playVec, ro);
+	//XMStoreFloat3(&playerLoc, playVec);
 
 	//Detranslate the Terrain
-	playerLoc.x -= TERRAIN_MOVE[0];
-	playerLoc.y -= TERRAIN_MOVE[1];
-	playerLoc.z += TERRAIN_MOVE[2];
+	//playerLoc.x -= TERRAIN_MOVE[0];
+	//playerLoc.y -= TERRAIN_MOVE[1];
+	//playerLoc.z -= TERRAIN_MOVE[2];
 
 	float height = terrain->GetHeight(playerLoc.x, playerLoc.z);
 
+	if (playerLoc.x <= 0)
+	{
+		TruPos.x = 255;
+	}
+	if (playerLoc.x >= 256)
+	{
+		TruPos.x = 1;
+	}
+
+	if (playerLoc.z <= 0)
+	{
+		TruPos.z = 255;
+	}
+	if (playerLoc.z >= 256)
+	{
+		TruPos.z = 1;
+	}
+
+	Cam->SetPosition(XMFLOAT3(TruPos.x, TruPos.y, TruPos.z));
+
 	std::cout << height << endl;
 
-	if (playerLoc.y < height)
+	if (playerLoc.y < height + 1)
 	{
-		playerLoc.y = height * TERRAIN_SCALE[1];
+		playerLoc.y = 1 + height * TERRAIN_SCALE[1];
 		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
 		player->m_bGrounded = true;
 	}
 
-	else if (playerLoc.y > height && player->m_bGrounded)
+	else if (playerLoc.y > height + 1 && player->m_bGrounded)
 	{
-		playerLoc.y = height;
+		playerLoc.y = height + 1;
 		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
 
 	}
+
 
 }
 
@@ -399,7 +427,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	XMFLOAT4X4 m_mWorld;
 	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,-1.57,0);
 	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
@@ -411,7 +439,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->CopyAllBufferData();
 
 	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("diffuseTexture", melonTexture);
+	pixelShader->SetShaderResourceView("diffuseTexture", sandDiffuse);
 
 	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
