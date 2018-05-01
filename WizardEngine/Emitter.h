@@ -67,6 +67,8 @@ private:
 	DirectX::XMFLOAT3 m_vPos;
 	DirectX::XMFLOAT4X4 m_mWorld;
 
+	DirectX::XMFLOAT3 particlePos;
+	DirectX::XMFLOAT3 wallFinal;
 
 	// emitters
 	DirectX::XMFLOAT4 startColor;

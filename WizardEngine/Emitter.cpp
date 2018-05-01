@@ -65,6 +65,7 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 	this->texture = texture;
 	components = std::vector<Component*>();
 	m_vPos = pos;
+	particlePos = pos;
 	m_vScale = scale;
 	m_vRotation = XMFLOAT3(0, 0, 0);
 	this->velocity = velocity;
@@ -78,7 +79,7 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 		emitterAcceleration = XMFLOAT3(0, -.5, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
-		secondsPerParticle = .001f;
+		secondsPerParticle = .01f;
 		lifetime = .7;
 		startSize = .04;
 		endSize = .08;
@@ -86,14 +87,17 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 	else if (type == 1) {
 		startColor = XMFLOAT4(1, 0.1f, 0.1f, 0.2f);
 		endColor = XMFLOAT4(1, 0.6f, 0.1f, 0);
-		startVelocity = XMFLOAT3(-2, 2, 0);
+		startVelocity = XMFLOAT3(-1, 1, 0);
 		emitterAcceleration = XMFLOAT3(0, -1, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
-		secondsPerParticle = 1.0f;
-		lifetime = 5;
+		secondsPerParticle = .01f;
+		lifetime = .8;
 		startSize = .1;
-		endSize = 5;
+		endSize = .8;
+		particlePos.y = m_vPos.y + 2.5;
+		wallFinal = m_vPos;
+		wallFinal.y = m_vPos.y + 2.5;
 	}
 
 	vbDesc = {};
@@ -235,7 +239,7 @@ void Emitter::SpawnParticle()
 	particles[firstDeadIndex].Age = 0;
 	particles[firstDeadIndex].Size = startSize;
 	particles[firstDeadIndex].Color = startColor;
-	particles[firstDeadIndex].Position = m_vPos;
+	particles[firstDeadIndex].Position = particlePos;
 	particles[firstDeadIndex].StartVel = startVelocity;
 	particles[firstDeadIndex].StartVel.x += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
 	particles[firstDeadIndex].StartVel.y += ((float)rand() / RAND_MAX) * 0.4f - 0.2f;
@@ -345,11 +349,22 @@ void Emitter::UpdateWall(float delt, float speed2)
 		XMFLOAT3 temp;
 		XMStoreFloat3(&temp, vecFinal);
 		m_vPos = temp;
+		vecOne = XMLoadFloat3(&particlePos);
+		vecTwo = XMLoadFloat3(&velocity);
+		vecTwo = DirectX::XMVectorScale(vecTwo, delt * speed2);
+
+		vecFinal = XMVectorAdd(vecOne, -vecTwo);
+		temp;
+		XMStoreFloat3(&temp, vecFinal);
+		particlePos = temp;
+		
 		outdatedMatrix = true;
 
-		if (GetPosition().y > -1.3)
+		if (GetPosition().y > wallFinal.y)
 		{
 			velocity = XMFLOAT3(0, 0, 0);
+			startSize = 0;
+			endSize = 0;
 		}
 }
 
@@ -373,7 +388,7 @@ void Emitter::updateSingleParticle(float delt, int i)
 
 	particles[i].Size = startSize + agePercent * (endSize - startSize);
 
-	XMVECTOR startPos = XMLoadFloat3(&m_vPos);
+	XMVECTOR startPos = XMLoadFloat3(&particlePos);
 	XMVECTOR startVel = XMLoadFloat3(&particles[i].StartVel);
 	XMVECTOR accel = XMLoadFloat3(&emitterAcceleration);
 	float t = particles[i].Age;

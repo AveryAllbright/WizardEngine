@@ -27,6 +27,7 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -205,7 +206,7 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoTexture)));
+	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoParticle)));
 
 	
 }
