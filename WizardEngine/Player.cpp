@@ -173,7 +173,10 @@ void Player::Update(float delt)
 	}
 
 	
-	
+	if (GetAsyncKeyState('E') & 0x8000)
+	{
+		m_fGravityMult = 0;
+	}
 
 
 	m_bPreviouslyGrounded = m_bGrounded;
