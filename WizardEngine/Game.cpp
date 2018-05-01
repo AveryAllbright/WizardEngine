@@ -230,6 +230,8 @@ void Game::CreateMaterials() {
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sand.jpg", 0, &sandDiffuse);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWall.jpg", 0, &stoneWall);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWallNormal.jpg", 0, &stoneWallNormal);
 
 
 	D3D11_SAMPLER_DESC sd = {};
@@ -245,6 +247,7 @@ void Game::CreateMaterials() {
 	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler, XMFLOAT2(1.0f, 1.0f));
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
+	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
 }
 
 void Game::CreateModels() {
@@ -252,6 +255,7 @@ void Game::CreateModels() {
 	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj",  device);
 	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj",  device);
 	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
+	wallMesh = new Mesh("..//..//Assets//Models//wall.obj", device);
 
 	// ------------------------
 	// Create a ring of columns
@@ -263,12 +267,26 @@ void Game::CreateModels() {
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 	
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
-		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 150;
-		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 150;
+		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 120;
+		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 75;
 		Entity* column = new Entity(columnMesh, marbleMaterial);
 		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
 			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		Entity* wall = new Entity(wallMesh, stoneMaterial);
+		switch (i)
+		{
+		case 0: wall->SetPosition(XMFLOAT3(70, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
+		case 1: wall->SetPosition(XMFLOAT3(170, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
+		case 2: wall->SetPosition(XMFLOAT3(120, -20, 127))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+		case 3: wall->SetPosition(XMFLOAT3(120, -20, 25))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+			
+			
+		}
+		Entities.push_back(wall);
 	}
 }
 

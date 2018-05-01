@@ -70,11 +70,14 @@ private:
 	Mesh* melonMesh;
 	Mesh* floorMesh;
 	Mesh* columnMesh;
+	Mesh* wallMesh;
 	
 	ID3D11ShaderResourceView* melonTexture;
 	ID3D11ShaderResourceView* marbleTexture;
 	ID3D11ShaderResourceView* sandDiffuse;
 	ID3D11ShaderResourceView* sandNormal;
+	ID3D11ShaderResourceView* stoneWall;
+	ID3D11ShaderResourceView* stoneWallNormal;
 	ID3D11ShaderResourceView* skySRV;
 
 	ID3D11RasterizerState* skyRast;
@@ -85,6 +88,7 @@ private:
 	Material* melonMaterial;
 	Material* marbleMaterial;
 	Material* sandMaterial;
+	Material* stoneMaterial;
 
 	Camera* Cam;
 	Player* player;
