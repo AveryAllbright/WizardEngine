@@ -9,6 +9,7 @@ class Collider;
 #include <d3d11.h>
 #include "Entity.h"
 #include "Camera.h"
+#include "Game.h"
 #include "SimpleShader.h"
 
 struct Particle{
@@ -30,27 +31,25 @@ class Emitter :
 	public Entity
 {
 public:
-	DirectX::XMFLOAT4X4 GetWorldMatrix();
-
-	Emitter(Mesh* a_pMesh, Material* a_pMaterial, int type, DirectX::XMFLOAT3 velocity, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 scale, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, ID3D11Device* device, ID3D11ShaderResourceView* texture);
+	//TODO: temp
+	Emitter(Mesh* a_pMesh, Material* a_pMaterial, ID3D11Device* device, ID3D11ShaderResourceView* texture);
 	~Emitter();
 
-	bool UpdateEmitters(float delt, float speed, float speed2);
+	virtual bool UpdateEmitters(float delta);
 
-	void SpawnParticle();
+	virtual void SpawnParticle();
 
 	void CopyParticlesToGPU(ID3D11DeviceContext* context);
 	void CopyOneParticle(int index);
 
+	// need to override to update particle's pos as well
+	virtual Entity* SetPosition(DirectX::XMFLOAT3 a_vPos);
+
 	void Draw(ID3D11DeviceContext* context, Camera* camera);
 
-
-private:
-	DirectX::XMFLOAT3 m_vRotation;
-	DirectX::XMFLOAT3 m_vScale;
-	DirectX::XMFLOAT3 m_vPos;
-	DirectX::XMFLOAT4X4 m_mWorld;
-
+	SimpleVertexShader* ParticleVS;
+	SimplePixelShader* ParticlePS;
+protected:
 	DirectX::XMFLOAT3 particlePos;
 	DirectX::XMFLOAT3 wallFinal;
 
@@ -69,28 +68,22 @@ private:
 	float lifetime;
 	float startSize;
 	float endSize;
+	float speed;
 	D3D11_BUFFER_DESC vbDesc;
 
 	int firstDeadIndex;
 	int firstAliveIndex;
 	int livingParticleCount;
 
-	int type;
-
 	Particle* particles;
 	ParticleVertex* localVertices;
 
-	SimpleVertexShader* ParticleVS;
-	SimplePixelShader* ParticlePS;
+
 
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
 
 	ID3D11ShaderResourceView* texture;
-
-	void UpdateFireball(float delt, float speed);
-
-	void UpdateWall(float delt, float speed);
 
 	void updateSingleParticle(float delt, int i);
 

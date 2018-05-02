@@ -2,44 +2,9 @@
 
 using namespace DirectX;
 
-Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XMFLOAT3 pos, XMFLOAT3 scale, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, ID3D11Device* device, ID3D11ShaderResourceView* texture) : Entity(mesh, material)
+Emitter::Emitter(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11ShaderResourceView* texture) : Entity(mesh, material)
 {
-	this->type = type;
 	this->texture = texture;
-	m_vPos = pos;
-	particlePos = pos;
-	m_vScale = scale;
-	m_vRotation = XMFLOAT3(0, 0, 0);
-	this->velocity = velocity;
-
-	//set up particles
-	if (type == 0) {
-		startColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.2f);
-		endColor = XMFLOAT4(10.0f, 10.2f, 10.0f, 0);
-		startVelocity = XMFLOAT3(-.01f, .01f, 0);
-		emitterAcceleration = XMFLOAT3(0, 0, 0);
-		maxParticles = 1000;
-		particlesPerSecond = 100;
-		secondsPerParticle = .001f;
-		lifetime = .7f;
-		startSize = .04f;
-		endSize = .08f;
-	}
-	else if (type == 1) {
-		startColor = XMFLOAT4(120, 42, 42, 0.2f);
-		endColor = XMFLOAT4(120, 42, 42, 0);
-		startVelocity = XMFLOAT3(-1, 1, -1);
-		emitterAcceleration = XMFLOAT3(0, -1, 0);
-		maxParticles = 1000;
-		particlesPerSecond = 100;
-		secondsPerParticle = .01f;
-		lifetime = .8f;
-		startSize = .8f;
-		endSize = 2;
-		particlePos.y = m_vPos.y + 2.5f;
-		wallFinal = m_vPos;
-		wallFinal.y = m_vPos.y + 2.5f;
-	}
 
 	vbDesc = {};
 	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -47,9 +12,6 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 	vbDesc.Usage = D3D11_USAGE_DYNAMIC;
 	vbDesc.ByteWidth = sizeof(ParticleVertex) * 4 * maxParticles;
 	device->CreateBuffer(&vbDesc, 0, &vertexBuffer);
-
-	this->ParticleVS = particleVS;
-	this->ParticlePS = particlePS;
 
 	timeSinceEmitt = 0;
 	firstAliveIndex = 0;
@@ -102,16 +64,18 @@ Emitter::~Emitter()
 	indexBuffer->Release();
 }
 
-bool Emitter::UpdateEmitters(float delt, float speed, float speed2)
+Entity * Emitter::SetPosition(DirectX::XMFLOAT3 a_vPos)
 {
-	
-	if (type == 0) {
-		UpdateFireball(delt, speed);
-	}
-	else if (type == 1) {
-		UpdateWall(delt, speed2);
-	}
+	//update particle pos
+	particlePos = a_vPos;
 
+	//base class call
+	Entity::SetPosition(a_vPos);
+	return this;
+}
+
+bool Emitter::UpdateEmitters(float delt)
+{
 	if (firstAliveIndex < firstDeadIndex) {
 		for (int i = firstAliveIndex; i < firstDeadIndex; i++) {
 			updateSingleParticle(delt, i);
@@ -154,11 +118,6 @@ void Emitter::SpawnParticle()
 
 	firstDeadIndex++;
 	firstDeadIndex %= maxParticles;
-
-	if (type == 1) {
-		startVelocity.x = 0 - startVelocity.x;
-		startVelocity.z = 0 - startVelocity.z;
-	}
 
 	livingParticleCount++;
 }
@@ -236,49 +195,6 @@ void Emitter::Draw(ID3D11DeviceContext * context, Camera * camera)
 
 		context->DrawIndexed((maxParticles - firstAliveIndex) * 6, firstAliveIndex * 6, 0);
 	}
-}
-
-void Emitter::UpdateFireball(float delt, float speed)
-{
-	XMVECTOR vecOne = XMLoadFloat3(&m_vPos);
-	XMVECTOR vecTwo = XMLoadFloat3(&velocity);
-	vecTwo = DirectX::XMVectorScale(vecTwo, delt * speed);
-	XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
-	XMFLOAT3 temp;
-	XMStoreFloat3(&temp, vecFinal);
-	m_vPos = temp;
-	particlePos = temp;
-	outdatedMatrix = true;
-
-}
-
-void Emitter::UpdateWall(float delt, float speed2)
-{
-	XMVECTOR vecOne = XMLoadFloat3(&m_vPos);
-		XMVECTOR vecTwo = XMLoadFloat3(&velocity);
-		vecTwo = DirectX::XMVectorScale(vecTwo, delt * speed2);
-
-		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
-		XMFLOAT3 temp;
-		XMStoreFloat3(&temp, vecFinal);
-		m_vPos = temp;
-		vecOne = XMLoadFloat3(&particlePos);
-		vecTwo = XMLoadFloat3(&velocity);
-		vecTwo = DirectX::XMVectorScale(vecTwo, delt * speed2);
-
-		vecFinal = XMVectorAdd(vecOne, -vecTwo);
-		temp;
-		XMStoreFloat3(&temp, vecFinal);
-		particlePos = temp;
-		
-		outdatedMatrix = true;
-
-		if (GetPosition().y > wallFinal.y)
-		{
-			velocity = XMFLOAT3(0, 0, 0);
-			startSize = 0;
-			endSize = 0;
-		}
 }
 
 void Emitter::updateSingleParticle(float delt, int i)

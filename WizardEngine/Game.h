@@ -7,7 +7,7 @@
 #include "Entity.h"
 #include "Camera.h"
 #include "Light.h"
-#include "Player.h"
+class Player;
 #include "Terrain.h"
 
 
@@ -42,13 +42,8 @@ public:
 	void OnMouseUp(WPARAM buttonState, int x, int y);
 	void OnMouseMove(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
-	
-private:
-	// Initialization helper methods - feel free to customize, combine, etc.
-	void LoadShaders();
-	void CreateBasicGeometry();
-	void CreateMaterials();
-	void CreateModels();
+	static std::vector<Entity*> Entities;
+
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -57,12 +52,34 @@ private:
 	SimplePixelShader* pixelShaderDebug;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
-	SimpleVertexShader* ParticleVS;
-	SimplePixelShader* ParticlePS;
 	SimpleVertexShader* normalVS;
 	SimplePixelShader* normalPS;
+	SimpleVertexShader* particleVS;
+	SimplePixelShader* particlePS;
 
 	BasicGeometry basicGeometry;
+
+	Material* melonMaterial;
+	Material* marbleMaterial;
+	Material* marbleHitMaterial;
+	Material* sandMaterial;
+	Material* stoneMaterial;
+	Material* matSpellOne;
+	Material* matSpellTwo;
+	Material* matSpellThree;
+
+
+	ID3D11ShaderResourceView* spellOneTexture;
+	ID3D11ShaderResourceView* spellTwoTexture;
+	ID3D11ShaderResourceView* spellTwoParticle;
+private:
+	// Initialization helper methods - feel free to customize, combine, etc.
+	void LoadShaders();
+	void CreateBasicGeometry();
+	void CreateMaterials();
+	void CreateModels();
+
+	
 
 	DirectX::XMFLOAT4X4 projectionMatrix;
 
@@ -70,12 +87,13 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 
-	std::vector<Entity*> Entities;
+	
 
 	Mesh* melonMesh;
 	Mesh* floorMesh;
 	Mesh* columnMesh;
 	Mesh* wallMesh;
+
 
 	ID3D11ShaderResourceView* melonTexture;
 	ID3D11ShaderResourceView* marbleTexture;
@@ -93,11 +111,7 @@ private:
 
 	ID3D11SamplerState* sampler;
 
-	Material* melonMaterial;
-	Material* marbleMaterial;
-	Material* marbleHitMaterial;
-	Material* sandMaterial;
-	Material* stoneMaterial;
+	
 
 	Camera* Cam;
 	Player* player;

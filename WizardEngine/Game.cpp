@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Player.h"
 #include "Prefabs.h"
 #include "Vertex.h"
 #include "ColliderBox.h"
@@ -14,6 +15,7 @@ using namespace DirectX;
 const float TERRAIN_MOVE[] = { 60, 0, 23 };
 const float TERRAIN_SCALE[] = { .05f, .05f, .05f };
 
+ std::vector<Entity*> Game::Entities;
 
 // --------------------------------------------------------
 // Constructor
@@ -59,8 +61,8 @@ Game::~Game()
 	delete pixelShaderDebug;
 	delete skyVS;
 	delete skyPS;
-	delete ParticleVS;
-	delete ParticlePS;
+	delete particleVS;
+	delete particlePS;
 	delete normalVS;
 	delete normalPS;
 
@@ -74,6 +76,9 @@ Game::~Game()
 	delete marbleMaterial;
 	delete marbleHitMaterial;
 	delete sandMaterial;
+	delete matSpellOne;
+	delete matSpellTwo;
+
 
 	delete Cam;
 	delete player;
@@ -89,6 +94,8 @@ Game::~Game()
 	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
 	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
+	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
+	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
 
 
 	delete basicGeometry.cone;
@@ -118,7 +125,7 @@ void Game::Init()
 	LoadShaders();
 
 	Cam = new Camera(width, height);
-	player = new Player(Cam, device, context, vertexShader, pixelShader, ParticleVS, ParticlePS);
+	player = new Player(Cam, device, context, this);
 	terrain = new Terrain();
 	bool result = terrain->InitialiseTerrain(device, "..//..//Assets//Setup.txt");
 	if (!result)
@@ -212,11 +219,11 @@ void Game::LoadShaders()
 	skyPS = new SimplePixelShader(device, context);
 	skyPS->LoadShaderFile(L"SkyPS.cso");
 
-	ParticleVS = new SimpleVertexShader(device, context);
-	ParticleVS->LoadShaderFile(L"ParticleVS.cso");
+	particleVS = new SimpleVertexShader(device, context);
+	particleVS->LoadShaderFile(L"ParticleVS.cso");
 
-	ParticlePS = new SimplePixelShader(device, context);
-	ParticlePS->LoadShaderFile(L"ParticlePS.cso");
+	particlePS = new SimplePixelShader(device, context);
+	particlePS->LoadShaderFile(L"ParticlePS.cso");
 
 	normalVS = new SimpleVertexShader(device, context);
 	normalVS->LoadShaderFile(L"VertexShaderNormal.cso");
@@ -247,6 +254,9 @@ void Game::CreateMaterials() {
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWall.jpg", 0, &stoneWall);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWallNormal.jpg", 0, &stoneWallNormal);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
 
 
 	D3D11_SAMPLER_DESC sd = {};
@@ -264,6 +274,8 @@ void Game::CreateMaterials() {
 	marbleHitMaterial = new Material(vertexShader, pixelShader, marbleHitTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
+	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
+	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
 }
 
 void Game::CreateModels() {
@@ -528,41 +540,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
 
-
-
-	for (UINT i = 0; i < player->Entities.size(); i++)
-
-	{
-		player->Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
-
-		pixelShader->SetSamplerState("basicSampler", sampler);
-		pixelShader->SetShaderResourceView("diffuseTexture", player->Entities[i]->material->GetSRV());
-		if (player->Entities[i]->material->m_hasNormal) {
-			pixelShader->SetShaderResourceView("normalTexture", player->Entities[i]->material->GetSRVNormal());
-		}
-
-		pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
-
-		pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
-
-		pixelShader->CopyAllBufferData();
-
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-
-		vert = player->Entities[i]->mesh->GetVertexBuffer();
-
-		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
-		context->IASetIndexBuffer(player->Entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		context->DrawIndexed(
-			player->Entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
-
-
-	}
-
 	for (UINT i = 0; i < Entities.size(); i++)
 		Entities[i]->Render();
 
@@ -588,7 +565,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);
-
+	/*
 	for (UINT i = 0; i < player->Entities.size(); i++)
 	{
 		float blend[4] = { 1,1,1,1 };
@@ -600,7 +577,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->OMSetBlendState(0, blend, 0xffffffff);
 		context->OMSetDepthStencilState(0, 0);
 	}
-
+	*/
 	swapChain->Present(0, 0);
 }
 
@@ -670,4 +647,5 @@ void Game::OnMouseWheel(float wheelDelta, int x, int y)
 {
 	player->SetActiveSpell(wheelDelta);
 }
+
 #pragma endregion

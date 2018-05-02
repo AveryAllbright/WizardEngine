@@ -6,10 +6,12 @@
 #include "Emitter.h"
 #include "DXCore.h"
 #include "WICTextureLoader.h"
+class Game;
 
 class Player
 {
 private:
+	Game* game;
 	bool m_bIsWalking;
 	float m_fWalkSpeed;
 	float m_fRunSpeed;
@@ -39,44 +41,16 @@ private:
 
 	bool m_Casting;
 
-	Mesh* meshSpellOne;
-	Mesh* meshSpellTwo;
-	Mesh* meshSpellThree;
-
-	Material* matSpellOne;
-	Material* matSpellTwo;
-	Material* matSpellThree;
-
-	ID3D11ShaderResourceView* spellOneTexture;
-	ID3D11ShaderResourceView* spellTwoTexture;
-	ID3D11ShaderResourceView* spellTwoParticle;
-
-	ID3D11SamplerState* sampler;
-
 	DirectX::XMFLOAT4X4 world;
 
-	float entityOneSpeed;
-	float wallRiseSpeed;
-
-	SimpleVertexShader* particleVS;
-	SimplePixelShader* particlePS;
 	ID3D11Device* device;
-
-
 public:
-	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS);
+	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, Game* ref);
 	~Player();
 	void Update(float delt);
 
-	void SpellOne();
-	std::vector<Emitter*> Entities;
-	
-
-	void SpellTwo();
-	
-
-	void SpellThree();
-	
+	void CastSpellOne();
+	void CastSpellTwo();
 
 	void SetActiveSpell(float input);
 	float playerHeight;

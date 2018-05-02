@@ -1,9 +1,11 @@
 #include "Player.h"
+#include "Prefabs.h"
+#include "Game.h"
 #include <iostream>
 
 using namespace DirectX;
 
-Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS)
+Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, Game* ref)
 {
 	m_Camera = a_Camera; 
 
@@ -23,53 +25,13 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_Casting = false;
 	cooldown = 0;
 	m_nActiveSpell = 0;
-	
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
-
-	D3D11_SAMPLER_DESC sd = {};
-	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sd.Filter = D3D11_FILTER_ANISOTROPIC;
-	sd.MaxAnisotropy = 16;
-	sd.MaxLOD = D3D11_FLOAT32_MAX;
-
-	device->CreateSamplerState(&sd, &sampler);
-
-	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
-	meshSpellOne = new Mesh("..//..//Assets//Models//sphere.obj", device);
-
-	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
-	meshSpellTwo = new Mesh("..//..//Assets//Models//cube.obj", device);
-
-	entityOneSpeed = 3.5;
-	wallRiseSpeed = 1.f;
 
 	playerHeight = 2.5f;
-
-	this->particlePS = particlePS;
-	this->particleVS = particleVS;
 	this->device = device;
+	game = ref;
 }
 
-
-Player::~Player()
-{
-	for (int i = 0; i < Entities.size(); i++) {
-		delete Entities[i];
-	}
-	
-	delete meshSpellOne;
-	delete meshSpellTwo;
-
-	delete matSpellOne;
-	delete matSpellTwo;
-
-	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
-	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
-}
+Player::~Player(){}
 
 void Player::Update(float delt)
 {
@@ -83,13 +45,10 @@ void Player::Update(float delt)
 	if (m_Casting) {
 		switch(m_nActiveSpell)
 		{
-		case 0: SpellOne();
+		case 0: CastSpellOne();
 			break;
-		case 1: SpellTwo();
-			break;
-		case 2: SpellThree();
-			break;
-			
+		case 1: CastSpellTwo();
+			break;			
 		}
 		m_Casting = false;
 		cooldown = .5;
@@ -156,11 +115,12 @@ void Player::Update(float delt)
 		m_Camera->SetPosition(temp);
 		
 	}
+	/*
 	for (int j = 0; j < Entities.size(); j++) 
 	{
 		Entities[j]->UpdateEmitters(delt, entityOneSpeed, wallRiseSpeed);
 	}
-
+	*/
 	
 	if (GetAsyncKeyState('E') & 0x8000)
 	{
@@ -171,18 +131,22 @@ void Player::Update(float delt)
 	m_bPreviouslyGrounded = m_bGrounded;
 }
 
-void Player::SpellOne()
+void Player::CastSpellOne()
 {
-	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01f,.01f,.01f), particleVS, particlePS , device, spellOneTexture)));
-	
-	
+	SpellOne* castedSpell = new SpellOne(game->basicGeometry.sphere, game->matSpellOne, device, game->spellOneTexture);
+	castedSpell->velocity = m_Camera->GetForward();
+
+	//TODO need to override this to set particle pos
+	castedSpell->SetPosition(m_vPos)->SetScale(XMFLOAT3(.01f, .01f, .01f));
+	castedSpell->ParticlePS = game->particlePS;
+	castedSpell->ParticleVS = game->particleVS;
+
+	Game::Entities.push_back(castedSpell);
 }
 
-void Player::SpellTwo()
+void Player::CastSpellTwo()
 {
-	
 	XMVECTOR pos = XMLoadFloat3(&m_vPos);
 	XMVECTOR offset = XMVectorSet(0, -3.5, 0, 0);
 	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
@@ -194,14 +158,8 @@ void Player::SpellTwo()
 	XMStoreFloat3(&offsetby, pos);
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-
-	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55f), particleVS, particlePS, device, spellTwoParticle)));
-
-	
-}
-
-void Player::SpellThree()
-{
+	//Game::Entities.push_back(new SpellTwo());
+	//Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55f), particleVS, particlePS, device, spellTwoParticle)));
 }
 
 void Player::SetActiveSpell(float input)
