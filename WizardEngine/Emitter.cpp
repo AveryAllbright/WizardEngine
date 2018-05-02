@@ -335,6 +335,7 @@ void Emitter::UpdateFireball(float delt, float speed)
 	XMFLOAT3 temp;
 	XMStoreFloat3(&temp, vecFinal);
 	m_vPos = temp;
+	particlePos = temp;
 	outdatedMatrix = true;
 
 }
