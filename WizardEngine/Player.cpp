@@ -4,7 +4,7 @@
 
 using namespace DirectX;
 
-Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader)
+Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS)
 {
 	m_Camera = a_Camera; 
 
@@ -13,10 +13,10 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_bGrounded = true;
 	m_bJump = false;
 
-	m_fWalkSpeed = 3.f;
+	m_fWalkSpeed = 18.f;
 	m_fRunSpeed = 6.0f;
 
-	m_fJumpSpeed = .008f;
+	m_fJumpSpeed = .012f;
 
 	m_fStickToGroundForce = 9.81f;
 	m_fGravityMult = 1.f;
@@ -25,8 +25,9 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	m_nActiveSpell = 0;
 	
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -39,29 +40,28 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	device->CreateSamplerState(&sd, &sampler);
 
 	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
-	meshSpellOne = new Mesh("..//..//Assets//Models//melon.obj", device);
+	meshSpellOne = new Mesh("..//..//Assets//Models//sphere.obj", device);
 
 	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
-	meshSpellTwo = new Mesh("..//..//Assets//Models//melon.obj", device);
+	meshSpellTwo = new Mesh("..//..//Assets//Models//cube.obj", device);
 
 	entityOneSpeed = 3.5;
 	wallRiseSpeed = 1.f;
 
 	playerHeight = 2.5f;
+
+	this->particlePS = particlePS;
+	this->particleVS = particleVS;
+	this->device = device;
 }
 
 
 Player::~Player()
 {
-	for (int i = 0; i < EntitiesOne.size(); i++) {
-		delete EntitiesOne[i];
+	for (int i = 0; i < Entities.size(); i++) {
+		delete Entities[i];
 	}
-	for (int i = 0; i < EntitiesTwo.size(); i++) {
-		delete EntitiesTwo[i];
-	}
-	for (int i = 0; i < EntitiesThree.size(); i++) {
-		delete EntitiesThree[i];
-	}
+	
 
 	delete meshSpellOne;
 	delete meshSpellTwo;
@@ -71,6 +71,10 @@ Player::~Player()
 
 	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
 	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
+
+	//delete particlePS;
+	//delete particleVS;
+	//delete device;
 	
 }
 
@@ -113,7 +117,7 @@ void Player::Update(float delt)
 	m_fMoveSpeed = m_bIsWalking ? m_fWalkSpeed : m_fRunSpeed;
 	m_Camera->SetMoveSpeed(m_fMoveSpeed);
 
-	if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
+	//if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
 
   	if (!m_bPreviouslyGrounded && m_bGrounded)
 	{
@@ -163,34 +167,15 @@ void Player::Update(float delt)
 		m_Camera->SetPosition(temp);
 		
 	}
-	for (int j = 0; j < EntitiesOne.size(); j++) 
+	for (int j = 0; j < Entities.size(); j++) 
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesOne[j]->GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesOne[j]->velocity);
-		vecTwo = DirectX::XMVectorScale(vecTwo, delt * entityOneSpeed);
-		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
-		XMFLOAT3 temp;
-		XMStoreFloat3(&temp, vecFinal);
-
-		EntitiesOne[j]->SetPosition(temp);
+		Entities[j]->UpdateEmitters(delt, entityOneSpeed, wallRiseSpeed);
 	}
 
-	for (int i = 0; i < EntitiesTwo.size(); i++)
+	
+	if (GetAsyncKeyState('E') & 0x8000)
 	{
-		XMVECTOR vecOne = XMLoadFloat3(&EntitiesTwo[i]->GetPosition());
-		XMVECTOR vecTwo = XMLoadFloat3(&EntitiesTwo[i]->velocity);
-		vecTwo = DirectX::XMVectorScale(vecTwo, delt * wallRiseSpeed);
-
-		XMVECTOR vecFinal = XMVectorAdd(vecOne, vecTwo);
-		XMFLOAT3 temp;
-		XMStoreFloat3(&temp, vecFinal);
-
-		EntitiesTwo[i]->SetPosition(temp);
-
-		if (EntitiesTwo[i]->GetPosition().y > -1.3)
-		{
-			EntitiesTwo[i]->velocity = XMFLOAT3(0, 0, 0);
-		}
+		m_fGravityMult = 0;
 	}
 
 
@@ -204,8 +189,8 @@ void Player::SpellOne()
 {
 	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	EntitiesOne.push_back((new Entity(meshSpellOne, matSpellOne))->SetPosition(m_vPos)->SetScale(XMFLOAT3(.05f, .05f, .05f)));
-	EntitiesOne[EntitiesOne.size() - 1]->velocity = m_Camera->GetForward();
+	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01,.01,.01), particleVS, particlePS , device, spellOneTexture)));
+	
 	
 }
 
@@ -213,7 +198,7 @@ void Player::SpellTwo()
 {
 	
 	XMVECTOR pos = XMLoadFloat3(&m_vPos);
-	XMVECTOR offset = XMVectorSet(0, -4, 0, 0);
+	XMVECTOR offset = XMVectorSet(0, -3.5, 0, 0);
 	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
 	displace = XMVectorScale(displace, 3);
 	displace = XMVectorSetIntY(displace, 0);
@@ -224,9 +209,8 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	EntitiesTwo.push_back((new Entity(meshSpellTwo, matSpellTwo))->SetPosition(offsetby)->SetScale(XMFLOAT3(.10f, .10f, .10f)));
+	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoParticle)));
 
-	EntitiesTwo[EntitiesTwo.size() - 1]->velocity = XMFLOAT3(0, wallRiseSpeed, 0);
 	
 }
 

@@ -15,6 +15,11 @@ Entity::Entity(Mesh * mesh, Material* material)
 	UpdateWorldView();
 }
 
+Entity::Entity()
+{
+	
+}
+
 Entity::~Entity() {
 	for (int i = 0; i < components.size(); i++)
 	{
@@ -111,6 +116,7 @@ void Entity::PrepareMaterial(XMFLOAT4X4 a_view, XMFLOAT4X4 a_proj)
 	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", a_view);
 	vertexShader->SetMatrix4x4("projection", a_proj);
+	vertexShader->SetFloat2("uvTiling", material->m_uvTiling);
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU

@@ -30,6 +30,7 @@ SamplerState basicSampler	: register(s0);
 cbuffer externalData : register(b1)
 {
 	DirectionalLight light;
+	DirectionalLight topLight;
 };
 
 float4 LightValue(DirectionalLight newLight, VertexToPixel input)
@@ -55,6 +56,5 @@ float4 LightValue(DirectionalLight newLight, VertexToPixel input)
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	float4 surfaceColour = diffuseTexture.Sample(basicSampler, input.uv);
-	return  float4(surfaceColour.rgb * LightValue(light, input), 1);
+	return  float4(surfaceColour.rgb * (LightValue(light, input) + LightValue(topLight, input)), 1);
 }
-

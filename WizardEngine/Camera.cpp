@@ -6,7 +6,7 @@ using namespace DirectX;
 Camera::Camera(int width, int height)
 {
 	//Default values for camera positioning
-	XMFLOAT3 position = XMFLOAT3(0, 0, -5);
+	XMFLOAT3 position = XMFLOAT3(140, 0, 83);
 
 	init(width, height, position);
 }
@@ -45,7 +45,7 @@ void Camera::CreateProjection(int width, int height)
 		0.25f * 3.1415926535f,	// Field of View Angle
 		(float)width / height,	// Aspect ratio
 		0.1f,				  	// Near clip plane distance
-		100.0f);			  	// Far clip plane distance
+		10000.0f);			  	// Far clip plane distance
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 

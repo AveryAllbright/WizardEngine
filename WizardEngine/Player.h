@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include <DirectXMath.h>
 #include "Entity.h"
+#include "Emitter.h"
 #include "DXCore.h"
 #include "WICTextureLoader.h"
 
@@ -27,7 +28,7 @@ private:
 	bool m_bPreviouslyGrounded;
 
 	bool m_Jumping;
-	bool m_bGrounded;
+	
 
 	float m_fMoveSpeed;
 
@@ -48,6 +49,7 @@ private:
 
 	ID3D11ShaderResourceView* spellOneTexture;
 	ID3D11ShaderResourceView* spellTwoTexture;
+	ID3D11ShaderResourceView* spellTwoParticle;
 
 	ID3D11SamplerState* sampler;
 
@@ -56,23 +58,28 @@ private:
 	float entityOneSpeed;
 	float wallRiseSpeed;
 
+	SimpleVertexShader* particleVS;
+	SimplePixelShader* particlePS;
+	ID3D11Device* device;
+
 
 public:
-	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader);
+	Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS);
 	~Player();
 	void Update(float delt);
 
 	void SpellOne();
-	std::vector<Entity*> EntitiesOne;
+	std::vector<Emitter*> Entities;
 	
 
 	void SpellTwo();
-	std::vector<Entity*> EntitiesTwo;
+	
 
 	void SpellThree();
-	std::vector<Entity*> EntitiesThree;
+	
 
 	void SetActiveSpell(float input);
 	float playerHeight;
+	bool m_bGrounded;
 };
 
