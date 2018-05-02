@@ -76,10 +76,10 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 		startColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.2f);
 		endColor = XMFLOAT4(10.0f, 10.2f, 10.0f, 0);
 		startVelocity = XMFLOAT3(-.01, .01, 0);
-		emitterAcceleration = XMFLOAT3(0, -.5, 0);
+		emitterAcceleration = XMFLOAT3(0, 0, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
-		secondsPerParticle = .003f;
+		secondsPerParticle = .001f;
 		lifetime = .7;
 		startSize = .04;
 		endSize = .08;
