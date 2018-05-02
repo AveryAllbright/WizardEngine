@@ -48,6 +48,7 @@ public:
 	Entity* AddComponent(Component* component);
 	virtual Entity* Start();
 	virtual bool Update(float deltaTime);
+	virtual void Render();
 	virtual void UpdateWorldView();
 	Mesh* mesh = nullptr;
 	Material* material = nullptr;

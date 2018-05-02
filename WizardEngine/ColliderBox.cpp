@@ -1,5 +1,4 @@
 #include "ColliderBox.h"
-#include "override_new.h"
 
 ColliderBox::ColliderBox(DirectX::XMFLOAT3 center)
 {
@@ -34,6 +33,10 @@ ColliderBox * ColliderBox::SetScale(DirectX::XMFLOAT3 scale)
 }
 
 
+//TODO this is straight hacks
+void ColliderBox::setGameRef(Game* ref) {
+	this->game = ref;
+}
 
 void ColliderBox::calcMinsMaxs() {
 	DirectX::XMVECTOR centerVector = DirectX::XMLoadFloat3(&center);
@@ -66,4 +69,8 @@ bool ColliderBox::IsColliding(ColliderBox * other)
 	if (mins.z > other->maxs.z) return false;
 
 	return true;
+}
+
+void ColliderBox::Render() {
+	game->DrawBox(center, scale);
 }

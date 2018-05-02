@@ -1,6 +1,5 @@
 #include "Player.h"
 #include <iostream>
-#include "override_new.h"
 
 using namespace DirectX;
 
@@ -189,7 +188,7 @@ void Player::SpellOne()
 {
 	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01,.01,.01), particleVS, particlePS , device, spellOneTexture)));
+	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01f,.01f,.01f), particleVS, particlePS , device, spellOneTexture)));
 	
 	
 }
@@ -209,7 +208,7 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoParticle)));
+	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55f), particleVS, particlePS, device, spellTwoParticle)));
 
 	
 }

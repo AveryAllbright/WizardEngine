@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include "override_new.h"
 using namespace DirectX;
 
 #pragma region Construct/Destruct

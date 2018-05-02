@@ -1,5 +1,6 @@
 #pragma once
 #include "Collider.h"
+#include "Game.h"
 
 class ColliderBox : public Collider {
 private:
@@ -8,9 +9,14 @@ private:
 	DirectX::XMFLOAT3 mins;
 	DirectX::XMFLOAT3 maxs;
 	void calcMinsMaxs();
+	Game* game;
 public:
+	//TODO this is straight hacks
+	void setGameRef(Game* ref);
+
 	virtual void subUpdate();
 	virtual void testCollision(Collider* other);
+	virtual void Render();
 
 	bool colliding = false;
 

@@ -2,15 +2,14 @@
 #include "Collider.h"
 #include "Entity.h"
 #include <iostream>
-#include "override_new.h"
 
 Collider::Collider() {
 	onCollisionEnterFunction = nullptr;
-		onCollisionExitFunction = nullptr;
-		onCollisionStayFunction = nullptr;
-		onTriggerEnterFunction = nullptr;
-		onTriggerExitFunction = nullptr;
-			onTriggerStayFunction = nullptr;
+	onCollisionExitFunction = nullptr;
+	onCollisionStayFunction = nullptr;
+	onTriggerEnterFunction = nullptr;
+	onTriggerExitFunction = nullptr;
+	onTriggerStayFunction = nullptr;
 }
 
 Collider::~Collider() {}

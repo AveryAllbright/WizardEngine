@@ -6,13 +6,12 @@
 #include <SimpleMath.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "override_new.h"
 
 // For the DirectX Math library
 using namespace DirectX;
 
 const float TERRAIN_MOVE[] = { 60, 0, 23 };
-const float TERRAIN_SCALE[] = { .05, .05, .05 };
+const float TERRAIN_SCALE[] = { .05f, .05f, .05f };
 
 
 // --------------------------------------------------------
@@ -149,6 +148,12 @@ void Game::Init()
 	rs.CullMode = D3D11_CULL_FRONT;
 	device->CreateRasterizerState(&rs, &skyRast);
 
+	//rasterizer description for debug box
+	D3D11_RASTERIZER_DESC debugrs = {};
+	debugrs.FillMode = D3D11_FILL_WIREFRAME;
+	debugrs.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&debugrs, &debugRast);
+
 	D3D11_DEPTH_STENCIL_DESC ds = {};
 	ds.DepthEnable = true;
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -249,13 +254,15 @@ void Game::CreateMaterials() {
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
 }
-
+void Game::testHandleCollision(Collider* me, Collider* that) {
+	printf("collider colliding with collider causing collision");
+}
 void Game::CreateModels() {
 
-	melonMesh = new Mesh("..//..//Assets//Models//melon.obj", device);
-	floorMesh = new Mesh("..//..//Assets//Models//floor.obj", device);
+	wallMesh   = new Mesh("..//..//Assets//Models//wall.obj", device);
+	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj", device);
+	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj", device);
 	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
-	wallMesh = new Mesh("..//..//Assets//Models//wall.obj", device);
 
 	// ------------------------
 	// Create a ring of columns
@@ -267,16 +274,29 @@ void Game::CreateModels() {
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
 
 	// The model transform is off by ~ this amount
-	const float MODEL_VERTICAL_OFFSET = 1.5f;
+	const float MODEL_VERTICAL_OFFSET = 2.5f;
 
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
 		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 120;
 		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 75;
+
+		XMFLOAT3 columnPosition(xPosition, -player->playerHeight + MODEL_VERTICAL_OFFSET, zPosition);
+
 		Entity* column = new Entity(columnMesh, marbleMaterial);
-		column->SetPosition(XMFLOAT3(xPosition , -player->playerHeight + MODEL_VERTICAL_OFFSET, zPosition))
+		column->SetPosition(columnPosition)
 			->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
+
+		ColliderBox* collider = new ColliderBox(columnPosition);
+		collider->onCollisionEnterFunction = &Game::testHandleCollision;
+		collider->setGameRef(this);
+		collider->SetCenter(columnPosition)->SetScale(XMFLOAT3(4, 4, 4));
+
+		column->AddComponent(collider);
 	}
+
+	
+
 	for (int i = 0; i < 4; i++)
 	{
 		Entity* wall = new Entity(wallMesh, stoneMaterial);
@@ -284,8 +304,8 @@ void Game::CreateModels() {
 		{
 		case 0: wall->SetPosition(XMFLOAT3(70, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
 		case 1: wall->SetPosition(XMFLOAT3(170, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
-		case 2: wall->SetPosition(XMFLOAT3(120, -20, 127))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
-		case 3: wall->SetPosition(XMFLOAT3(120, -20, 25))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+		case 2: wall->SetPosition(XMFLOAT3(120, -20, 127))->SetRotation(XMFLOAT3(0, 1.57f, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+		case 3: wall->SetPosition(XMFLOAT3(120, -20, 25))->SetRotation(XMFLOAT3(0, 1.57f, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
 
 
 		}
@@ -383,6 +403,53 @@ void Game::Update(float deltaTime, float totalTime)
 
 
 }
+void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
+	//switch to wireframe
+	context->RSSetState(debugRast);
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	ID3D11Buffer* vert = basicGeometry.cube->GetVertexBuffer();
+
+	context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
+	context->IASetIndexBuffer(basicGeometry.cube->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+
+	vertexShader->SetShader();
+	pixelShader->SetShader();
+
+	XMFLOAT4X4 m_mWorld;
+	XMMATRIX tr = XMMatrixTranslation(position.x, position.y, position.z);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0, 0, 0);
+	XMMATRIX sc = XMMatrixScaling(scale.x, scale.y, scale.z);
+
+	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
+
+	vertexShader->SetMatrix4x4("world", m_mWorld);
+	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
+	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+
+	vertexShader->CopyAllBufferData();
+
+	pixelShader->SetSamplerState("basicSampler", sampler);
+	pixelShader->SetShaderResourceView("diffuseTexture", sandDiffuse);
+
+	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
+
+	pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
+
+	pixelShader->CopyAllBufferData();
+
+
+	context->DrawIndexed(
+		basicGeometry.cube->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+		0,     // Offset to the first index we want to use
+		0);    // Offset to add to each index when looking up vertices
+		
+
+	//switch back (this may not be the best way to do this)
+	context->RSSetState(0);
+}
 
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user
@@ -402,6 +469,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
+
+
+
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
@@ -413,6 +483,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetSamplerState("BasicSampler", sampler);
 
 
+	
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 
@@ -448,7 +519,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	XMFLOAT4X4 m_mWorld;
 	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0, -1.57, 0);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0, -1.57f, 0);
 	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
@@ -505,6 +576,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 
 	}
+
+	for (UINT i = 0; i < Entities.size(); i++)
+		Entities[i]->Render();
+
 
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();

@@ -1,7 +1,6 @@
 #pragma once
 #include "Component.h"
 #include "Entity.h"
-#include "override_new.h"
 
 Component::Component()
 {
@@ -21,3 +20,4 @@ void Component::setEntity(Entity* entity)
 }
 void Component::Start() {}
 void Component::Update(float deltaTime) {}
+void Component::Render() {}

@@ -121,9 +121,6 @@
     <ClInclude Include="CenteredSound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="override_new.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>

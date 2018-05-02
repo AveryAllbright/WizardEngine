@@ -10,6 +10,7 @@
 #include "Player.h"
 #include "Terrain.h"
 
+
 struct BasicGeometry {
 	Mesh* cone;
 	Mesh* cube;
@@ -34,12 +35,15 @@ public:
 	void OnResize();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
+	void DrawBox(XMFLOAT3 position, XMFLOAT3 scale);
 
 	// Overridden mouse input helper methods
 	void OnMouseDown(WPARAM buttonState, int x, int y);
 	void OnMouseUp(WPARAM buttonState, int x, int y);
 	void OnMouseMove(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
+
+	static void testHandleCollision(Collider* me, Collider* that);
 private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders();
@@ -82,6 +86,8 @@ private:
 
 	ID3D11RasterizerState* skyRast;
 	ID3D11DepthStencilState* skyDepth;
+
+	ID3D11RasterizerState* debugRast;
 
 	ID3D11SamplerState* sampler;
 

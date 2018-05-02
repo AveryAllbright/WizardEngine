@@ -1,6 +1,5 @@
 #include "Entity.h"
 #include "Component.h"
-#include "override_new.h"
 
 using namespace DirectX;
 
@@ -50,6 +49,15 @@ bool Entity::Update(float deltaTime) {
 		components[i]->Update(deltaTime);
 	return true;
 }
+
+void Entity::Render() {
+	//TODO switch return type to bool to allow early return
+
+	//update all components as well
+	for (int i = 0; i < (int)components.size(); i++)
+		components[i]->Render();
+}
+
 #pragma region Accessors
 XMFLOAT3 Entity::GetPosition()
 {

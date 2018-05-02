@@ -1,6 +1,5 @@
 #include "Mesh.h"
 #include <fstream>
-#include "override_new.h"
 
 using namespace DirectX;
 

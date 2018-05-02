@@ -12,6 +12,7 @@ public:
 	void setEntity(Entity* gameObject);
 	virtual void Start();
 	virtual void Update(float deltaTime);
+	virtual void Render();
 
 private:
 	Entity* entity;
