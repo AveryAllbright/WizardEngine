@@ -30,26 +30,10 @@ class Emitter :
 	public Entity
 {
 public:
-	DirectX::XMFLOAT3 GetPosition();
-	DirectX::XMFLOAT3 GetRotation();
-	DirectX::XMFLOAT3 GetScale();
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
-
-	Mesh * mesh = nullptr;
-	Material* material = nullptr;
-
-	void PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj);
 
 	Emitter(Mesh* a_pMesh, Material* a_pMaterial, int type, DirectX::XMFLOAT3 velocity, DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 scale, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, ID3D11Device* device, ID3D11ShaderResourceView* texture);
 	~Emitter();
-
-	Emitter* SetPosition(DirectX::XMFLOAT3 a_vPos);
-	Emitter* SetRotation(DirectX::XMFLOAT3 a_vRotation);
-	Emitter* SetScale(DirectX::XMFLOAT3 a_vScale);
-
-	std::vector<Component*> components;
-
-	void UpdateWorldView();
 
 	bool UpdateEmitters(float delt, float speed, float speed2);
 

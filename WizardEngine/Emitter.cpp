@@ -2,87 +2,28 @@
 
 using namespace DirectX;
 
-
-DirectX::XMFLOAT3 Emitter::GetPosition()
+Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XMFLOAT3 pos, XMFLOAT3 scale, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, ID3D11Device* device, ID3D11ShaderResourceView* texture) : Entity(mesh, material)
 {
-	return m_vPos;
-}
-
-DirectX::XMFLOAT3 Emitter::GetRotation()
-{
-	return m_vRotation;
-}
-
-DirectX::XMFLOAT3 Emitter::GetScale()
-{
-	return m_vScale;
-}
-
-DirectX::XMFLOAT4X4 Emitter::GetWorldMatrix()
-{
-	if (outdatedMatrix) {
-		UpdateWorldView();
-		outdatedMatrix = false;
-	}
-	return m_mWorld;
-}
-
-void Emitter::PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj)
-{
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame...YET
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-	SimpleVertexShader* vertexShader = material->GetVertShader();
-	SimplePixelShader*  pixelShader = material->GetPixelShader();
-	vertexShader->SetShader();
-	pixelShader->SetShader();
-
-	// Send data to shader variables
-	//  - Do this ONCE PER OBJECT you're drawing
-	//  - This is actually a complex process of copying data to a local buffer
-	//    and then copying that entire buffer to the GPU.  
-	//  - The "SimpleShader" class handles all of that for you.
-	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
-	vertexShader->SetMatrix4x4("view", a_view);
-	vertexShader->SetMatrix4x4("projection", a_proj);
-
-	// Once you've set all of the data you care to change for
-	// the next draw call, you need to actually send it to the GPU
-	//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
-	vertexShader->CopyAllBufferData();
-
-	//pixelShader->SetSamplerState("basicSampler", material->samplerState);
-	//pixelShader->SetShaderResourceView("diffuseTexture", material->shaderResourceView);
-	//pixelShader->CopyAllBufferData();
-}
-
-Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XMFLOAT3 pos, XMFLOAT3 scale, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, ID3D11Device* device, ID3D11ShaderResourceView* texture)
-{
-	this->mesh = mesh;
-	this->material = material;
 	this->type = type;
 	this->texture = texture;
-	components = std::vector<Component*>();
 	m_vPos = pos;
 	particlePos = pos;
 	m_vScale = scale;
 	m_vRotation = XMFLOAT3(0, 0, 0);
 	this->velocity = velocity;
-	UpdateWorldView();
 
 	//set up particles
 	if (type == 0) {
 		startColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.2f);
 		endColor = XMFLOAT4(10.0f, 10.2f, 10.0f, 0);
-		startVelocity = XMFLOAT3(-.01, .01, 0);
+		startVelocity = XMFLOAT3(-.01f, .01f, 0);
 		emitterAcceleration = XMFLOAT3(0, 0, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
 		secondsPerParticle = .001f;
-		lifetime = .7;
-		startSize = .04;
-		endSize = .08;
+		lifetime = .7f;
+		startSize = .04f;
+		endSize = .08f;
 	}
 	else if (type == 1) {
 		startColor = XMFLOAT4(120, 42, 42, 0.2f);
@@ -92,12 +33,12 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 		maxParticles = 1000;
 		particlesPerSecond = 100;
 		secondsPerParticle = .01f;
-		lifetime = .8;
-		startSize = .8;
+		lifetime = .8f;
+		startSize = .8f;
 		endSize = 2;
-		particlePos.y = m_vPos.y + 2.5;
+		particlePos.y = m_vPos.y + 2.5f;
 		wallFinal = m_vPos;
-		wallFinal.y = m_vPos.y + 2.5;
+		wallFinal.y = m_vPos.y + 2.5f;
 	}
 
 	vbDesc = {};
@@ -155,44 +96,10 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 
 Emitter::~Emitter()
 {
-	for (int i = 0; i < components.size(); i++)
-	{
-		delete components[i];
-	}
 	delete[] particles;
 	delete[] localVertices;
 	vertexBuffer->Release();
 	indexBuffer->Release();
-}
-
-Emitter* Emitter::SetPosition(XMFLOAT3 a_vPos)
-{
-	m_vPos = a_vPos;
-	outdatedMatrix = true;
-	return this;
-}
-
-Emitter* Emitter::SetRotation(XMFLOAT3 a_vRotation)
-{
-	m_vRotation = a_vRotation;
-	outdatedMatrix = true;
-	return this;
-}
-
-Emitter* Emitter::SetScale(XMFLOAT3 a_vScale)
-{
-	m_vScale = a_vScale;
-	outdatedMatrix = true;
-	return this;
-}
-
-void Emitter::UpdateWorldView()
-{
-	XMMATRIX tr = XMMatrixTranslation(m_vPos.x, m_vPos.y, m_vPos.z);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(m_vRotation.x, m_vRotation.y, m_vRotation.z);
-	XMMATRIX sc = XMMatrixScaling(m_vScale.x, m_vScale.y, m_vScale.z);
-
-	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
 }
 
 bool Emitter::UpdateEmitters(float delt, float speed, float speed2)

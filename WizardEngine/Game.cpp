@@ -409,7 +409,7 @@ void Game::Update(float deltaTime, float totalTime)
 }
 
 // Draws a wireframe box at a certain position with scale
-void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
+void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT4 color) {
 	//switch to wireframe
 	context->RSSetState(debugRast);
 
@@ -426,15 +426,14 @@ void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
 
 	XMFLOAT4X4 m_mWorld;
 	XMMATRIX tr = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0, 0, 0);
 	XMMATRIX sc = XMMatrixScaling(scale.x, scale.y, scale.z);
 
-	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
+	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * tr));
 
 	vertexShaderDebug->SetMatrix4x4("world", m_mWorld);
 	vertexShaderDebug->SetMatrix4x4("view", Cam->GetViewMatrix());
 	vertexShaderDebug->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
-	vertexShaderDebug->SetFloat4("color", XMFLOAT4(0, 1, 0, 1));
+	vertexShaderDebug->SetFloat4("color", color);
 	vertexShaderDebug->CopyAllBufferData();
 
 	context->DrawIndexed(basicGeometry.cube->GetIndexCount(), 0, 0);

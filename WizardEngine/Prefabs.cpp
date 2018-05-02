@@ -1,9 +1,11 @@
 #include "Prefabs.h"
 #include "ColliderBox.h"
 
-Column::Column(Mesh * mesh, Material * material, Material* hitMat, Game* game) : Entity(mesh, material){
+Column::Column(Mesh * mesh, Material * mainMaterial, Material* damageMaterial, Game* game)
+	: Entity(mesh, mainMaterial){
+
 	this->m_vScale = XMFLOAT3(0.01f, 0.01f, 0.01f);
-	this->hitMaterial = hitMat;
+	this->hitMaterial = damageMaterial;
 
 	//create a box collider component
 	ColliderBox* collider = new ColliderBox(this->m_vPos);
@@ -31,8 +33,10 @@ void Column::testHandleCollision(Collider * me, Collider * other)
 
 Entity * Column::SetPosition(DirectX::XMFLOAT3 a_vPos)
 {
-
+	//update collider position
 	this->getComponent<ColliderBox>()->SetCenter(a_vPos);
+
+	//base class call
 	Entity::SetPosition(a_vPos);
 	return this;
 }

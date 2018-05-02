@@ -35,7 +35,7 @@ public:
 	void OnResize();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
-	void DrawBox(XMFLOAT3 position, XMFLOAT3 scale);
+	void DrawBox(XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT4 color = XMFLOAT4(0, 1, 0, 1));
 
 	// Overridden mouse input helper methods
 	void OnMouseDown(WPARAM buttonState, int x, int y);

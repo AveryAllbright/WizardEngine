@@ -61,7 +61,6 @@ Player::~Player()
 		delete Entities[i];
 	}
 	
-
 	delete meshSpellOne;
 	delete meshSpellTwo;
 
@@ -70,11 +69,6 @@ Player::~Player()
 
 	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
 	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
-
-	//delete particlePS;
-	//delete particleVS;
-	//delete device;
-	
 }
 
 void Player::Update(float delt)
@@ -130,8 +124,6 @@ void Player::Update(float delt)
 		m_vMoveDir.y = 0;
 	}
 
-	
-
 	if (m_bGrounded)
 	{
 		//m_vMoveDir.y = -m_fStickToGroundForce;
@@ -148,8 +140,6 @@ void Player::Update(float delt)
 	{
 		m_vMoveDir.y += -.00981f * m_fGravityMult * delt;
 	}
-
-	
 
 	if (m_vMoveDir.y != 0)
 	{
@@ -179,9 +169,6 @@ void Player::Update(float delt)
 
 
 	m_bPreviouslyGrounded = m_bGrounded;
-
-
-
 }
 
 void Player::SpellOne()
