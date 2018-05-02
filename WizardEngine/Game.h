@@ -54,6 +54,8 @@ private:
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+	SimpleVertexShader* vertexShaderDebug;
+	SimplePixelShader* pixelShaderDebug;
 	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
 	SimpleVertexShader* ParticleVS;

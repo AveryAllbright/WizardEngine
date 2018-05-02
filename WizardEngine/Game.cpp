@@ -54,6 +54,8 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+	delete vertexShaderDebug;
+	delete pixelShaderDebug;
 	delete skyVS;
 	delete skyPS;
 	delete ParticleVS;
@@ -98,8 +100,6 @@ Game::~Game()
 		delete Entities[i];
 		Entities[i] = 0;
 	}
-
-	_CrtDumpMemoryLeaks();
 }
 
 // --------------------------------------------------------
@@ -196,6 +196,12 @@ void Game::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	
+	vertexShaderDebug = new SimpleVertexShader(device, context);
+	vertexShaderDebug->LoadShaderFile(L"VertexShaderDebug.cso");
+
+	pixelShaderDebug = new SimplePixelShader(device, context);
+	pixelShaderDebug->LoadShaderFile(L"PixelShaderDebug.cso");
 
 	skyVS = new SimpleVertexShader(device, context);
 	skyVS->LoadShaderFile(L"SkyVS.cso");
@@ -415,8 +421,8 @@ void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
 	context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
 	context->IASetIndexBuffer(basicGeometry.cube->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	vertexShader->SetShader();
-	pixelShader->SetShader();
+	vertexShaderDebug->SetShader();
+	pixelShaderDebug->SetShader();
 
 	XMFLOAT4X4 m_mWorld;
 	XMMATRIX tr = XMMatrixTranslation(position.x, position.y, position.z);
@@ -425,21 +431,11 @@ void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
 
-	vertexShader->SetMatrix4x4("world", m_mWorld);
-	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
-	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
-
-	vertexShader->CopyAllBufferData();
-
-	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("diffuseTexture", sandDiffuse);
-
-	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
-
-	pixelShader->SetData("light", &DirLight, sizeof(DirectionalLight));
-
-	pixelShader->CopyAllBufferData();
-
+	vertexShaderDebug->SetMatrix4x4("world", m_mWorld);
+	vertexShaderDebug->SetMatrix4x4("view", Cam->GetViewMatrix());
+	vertexShaderDebug->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+	vertexShaderDebug->SetFloat4("color", XMFLOAT4(0, 1, 0, 1));
+	vertexShaderDebug->CopyAllBufferData();
 
 	context->DrawIndexed(
 		basicGeometry.cube->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
