@@ -3,12 +3,17 @@
 #include "ColliderBox.h"
 #include "WICTextureLoader.h"
 #include "DDSTextureLoader.h"
+#include <SimpleMath.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "override_new.h"
 
 // For the DirectX Math library
 using namespace DirectX;
+
+const float TERRAIN_MOVE[] = { 60, 0, 23 };
+const float TERRAIN_SCALE[] = { .05, .05, .05 };
+
 
 // --------------------------------------------------------
 // Constructor
@@ -26,7 +31,7 @@ Game::Game(HINSTANCE hInstance)
 		1080,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
 {
-	
+
 	// Initialize fields
 	vertexShader = 0;
 	pixelShader = 0;
@@ -35,7 +40,7 @@ Game::Game(HINSTANCE hInstance)
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
-	CreateConsoleWindow(500, 120, 32, 120);	
+	CreateConsoleWindow(500, 120, 32, 120);
 #endif
 }
 
@@ -66,21 +71,21 @@ Game::~Game()
 	delete melonMaterial;
 	delete marbleMaterial;
 	delete sandMaterial;
-	
+
 	delete Cam;
 	delete player;
 
 	skySRV->Release();
 	skyDepth->Release();
 	skyRast->Release();
-	
+
 	if (sampler) { sampler->Release(); sampler = 0; }
-	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }	
+	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
 	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
 	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
-	
+
 
 	delete basicGeometry.cone;
 	delete basicGeometry.cube;
@@ -104,7 +109,7 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -124,13 +129,13 @@ void Game::Init()
 	CreateMaterials();
 	CreateModels();
 
-	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
+	DirLight.AmbientColour = XMFLOAT4(.5f, .5f, .5f, 1.f);
 	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.5f, 0.5f, 1.f);
-	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
+	DirLight.Direction = XMFLOAT3(1.f, 0.f, 1.f);
 
 	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
 	TopLight.DiffuseColour = XMFLOAT4(0.5f, 0.5f, .5f, 1.f);
-	TopLight.Direction     = XMFLOAT3(0.f, 2.f, 0.f);
+	TopLight.Direction = XMFLOAT3(0.f, 2.f, 0.f);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -144,7 +149,7 @@ void Game::Init()
 	rs.CullMode = D3D11_CULL_FRONT;
 	device->CreateRasterizerState(&rs, &skyRast);
 
-	D3D11_DEPTH_STENCIL_DESC ds = {}; 
+	D3D11_DEPTH_STENCIL_DESC ds = {};
 	ds.DepthEnable = true;
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -211,12 +216,12 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	basicGeometry.cone     = new Mesh("../../Assets/Models/cone.obj",     device);
-	basicGeometry.cube     = new Mesh("../../Assets/Models/cube.obj",     device);
+	basicGeometry.cone = new Mesh("../../Assets/Models/cone.obj", device);
+	basicGeometry.cube = new Mesh("../../Assets/Models/cube.obj", device);
 	basicGeometry.cylinder = new Mesh("../../Assets/Models/cylinder.obj", device);
-	basicGeometry.helix    = new Mesh("../../Assets/Models/helix.obj",    device);
-	basicGeometry.sphere   = new Mesh("../../Assets/Models/sphere.obj",   device);
-	basicGeometry.torus    = new Mesh("../../Assets/Models/torus.obj",    device);
+	basicGeometry.helix = new Mesh("../../Assets/Models/helix.obj", device);
+	basicGeometry.sphere = new Mesh("../../Assets/Models/sphere.obj", device);
+	basicGeometry.torus = new Mesh("../../Assets/Models/torus.obj", device);
 }
 
 void Game::CreateMaterials() {
@@ -225,6 +230,8 @@ void Game::CreateMaterials() {
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sand.jpg", 0, &sandDiffuse);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWall.jpg", 0, &stoneWall);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWallNormal.jpg", 0, &stoneWallNormal);
 
 
 	D3D11_SAMPLER_DESC sd = {};
@@ -237,33 +244,52 @@ void Game::CreateMaterials() {
 
 	device->CreateSamplerState(&sd, &sampler);
 
-	melonMaterial  = new Material(vertexShader, pixelShader, melonTexture,  sampler, XMFLOAT2(1.0f, 1.0f));
+	melonMaterial = new Material(vertexShader, pixelShader, melonTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
+	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
 }
 
 void Game::CreateModels() {
 
-	melonMesh  = new Mesh("..//..//Assets//Models//melon.obj",  device);
-	floorMesh  = new Mesh("..//..//Assets//Models//floor.obj",  device);
+	melonMesh = new Mesh("..//..//Assets//Models//melon.obj", device);
+	floorMesh = new Mesh("..//..//Assets//Models//floor.obj", device);
 	columnMesh = new Mesh("..//..//Assets//Models//column.obj", device);
+	wallMesh = new Mesh("..//..//Assets//Models//wall.obj", device);
 
 	// ------------------------
 	// Create a ring of columns
 	// ------------------------
 	const int RING_RADIUS = 30;
-	const int COLUMN_COUNT = 5;
+	const int COLUMN_COUNT = 10;
 
 	// How many degrees between the columns
 	const float SPACING_RADIANS = 2 * (float)M_PI / COLUMN_COUNT;
-	
+
+	// The model transform is off by ~ this amount
+	const float MODEL_VERTICAL_OFFSET = 1.5f;
+
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
-		float xPosition = cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
-		float zPosition = sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS;
+		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 120;
+		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 75;
 		Entity* column = new Entity(columnMesh, marbleMaterial);
-		column->SetPosition(XMFLOAT3(xPosition, -player->playerHeight, zPosition))
-			  ->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
+		column->SetPosition(XMFLOAT3(xPosition , -player->playerHeight + MODEL_VERTICAL_OFFSET, zPosition))
+			->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
 		Entities.push_back(column);
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		Entity* wall = new Entity(wallMesh, stoneMaterial);
+		switch (i)
+		{
+		case 0: wall->SetPosition(XMFLOAT3(70, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
+		case 1: wall->SetPosition(XMFLOAT3(170, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
+		case 2: wall->SetPosition(XMFLOAT3(120, -20, 127))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+		case 3: wall->SetPosition(XMFLOAT3(120, -20, 25))->SetRotation(XMFLOAT3(0, 1.57, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
+
+
+		}
+		Entities.push_back(wall);
 	}
 }
 
@@ -294,6 +320,68 @@ void Game::Update(float deltaTime, float totalTime)
 
 	Cam->Update(deltaTime, totalTime);
 	player->Update(deltaTime);
+
+	//Set Player Heights based on Terrain Heights
+
+	//Descale the Terrain
+	XMFLOAT3 TruPos = Cam->GetPosition();
+	XMFLOAT3 playerLoc = TruPos;
+	//playerLoc.x *= .5
+	//playerLoc.y *= .5;
+	//playerLoc.z *= .5;
+
+
+
+	std::cout << playerLoc.x << ' ' << playerLoc.y << ' ' << playerLoc.z << endl;
+	//SimpleMath::Quaternion ro(0, -1.57, 0, 0);
+	//XMVECTOR playVec = XMLoadFloat3(&playerLoc);
+	//playVec = XMVector3Rotate(playVec, ro);
+	//XMStoreFloat3(&playerLoc, playVec);
+
+	//Detranslate the Terrain
+	//playerLoc.x -= TERRAIN_MOVE[0];
+	//playerLoc.y -= TERRAIN_MOVE[1];
+	//playerLoc.z -= TERRAIN_MOVE[2];
+
+	float height = terrain->GetHeight(playerLoc.x, playerLoc.z);
+
+	if (playerLoc.x <= 0)
+	{
+		TruPos.x = 255;
+	}
+	if (playerLoc.x >= 256)
+	{
+		TruPos.x = 1;
+	}
+
+	if (playerLoc.z <= 0)
+	{
+		TruPos.z = 255;
+	}
+	if (playerLoc.z >= 256)
+	{
+		TruPos.z = 1;
+	}
+
+	Cam->SetPosition(XMFLOAT3(TruPos.x, TruPos.y, TruPos.z));
+
+	std::cout << height << endl;
+
+	if (playerLoc.y < height + 1)
+	{
+		playerLoc.y = 1 + height * TERRAIN_SCALE[1];
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+		player->m_bGrounded = true;
+	}
+
+	else if (playerLoc.y > height + 1 && player->m_bGrounded)
+	{
+		playerLoc.y = height + 1;
+		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
+
+	}
+
+
 }
 
 // --------------------------------------------------------
@@ -324,20 +412,20 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
 
-		
+
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 
 		Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
-		
+
 		Entities[i]->material->GetPixelShader()->SetSamplerState("basicSampler", sampler);
 		Entities[i]->material->GetPixelShader()->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
 		Entities[i]->material->GetPixelShader()->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
 
-		
-		Entities[i]->material->GetPixelShader()->SetData("topLight", &TopLight, sizeof(DirectionalLight) );
 
-		Entities[i]->material->GetPixelShader()->SetData("light", &DirLight, sizeof(DirectionalLight) );
+		Entities[i]->material->GetPixelShader()->SetData("topLight", &TopLight, sizeof(DirectionalLight));
+
+		Entities[i]->material->GetPixelShader()->SetData("light", &DirLight, sizeof(DirectionalLight));
 
 		Entities[i]->material->GetPixelShader()->CopyAllBufferData();
 
@@ -354,14 +442,14 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
-		
+
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
 	XMFLOAT4X4 m_mWorld;
-	XMMATRIX tr = XMMatrixTranslation(-10, -27, 10);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
-	XMMATRIX sc = XMMatrixScaling(2,2,2);
+	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0, -1.57, 0);
+	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
 
@@ -372,7 +460,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->CopyAllBufferData();
 
 	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("diffuseTexture", melonTexture);
+	pixelShader->SetShaderResourceView("diffuseTexture", sandDiffuse);
 
 	pixelShader->SetData("topLight", &TopLight, sizeof(DirectionalLight));
 
@@ -383,7 +471,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
 
-	
+
 
 	for (UINT i = 0; i < player->Entities.size(); i++)
 
@@ -415,9 +503,9 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 
-		
+
 	}
-	
+
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
 
@@ -428,7 +516,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	skyVS->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
 	skyVS->CopyAllBufferData();
 	skyVS->SetShader();
-	
+
 	skyPS->SetShaderResourceView("SkyTexture", skySRV);
 	skyPS->SetSamplerState("BasicSampler", sampler);
 	skyPS->SetShader();
@@ -451,7 +539,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->OMSetBlendState(0, blend, 0xffffffff);
 		context->OMSetDepthStencilState(0, 0);
 	}
-	
+
 	swapChain->Present(0, 0);
 }
 

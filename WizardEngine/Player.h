@@ -28,7 +28,7 @@ private:
 	bool m_bPreviouslyGrounded;
 
 	bool m_Jumping;
-	bool m_bGrounded;
+	
 
 	float m_fMoveSpeed;
 
@@ -49,6 +49,7 @@ private:
 
 	ID3D11ShaderResourceView* spellOneTexture;
 	ID3D11ShaderResourceView* spellTwoTexture;
+	ID3D11ShaderResourceView* spellTwoParticle;
 
 	ID3D11SamplerState* sampler;
 
@@ -79,5 +80,6 @@ public:
 
 	void SetActiveSpell(float input);
 	float playerHeight;
+	bool m_bGrounded;
 };
 

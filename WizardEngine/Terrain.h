@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 using namespace DirectX;
 using namespace std;
@@ -19,6 +20,8 @@ public:
 	void Render(ID3D11DeviceContext*);
 
 	int GetIndexCount();
+	float GetHeight(float, float);
+	
 
 private:
 
@@ -48,6 +51,7 @@ private:
 	void SetTerrainCoordinates();
 	bool BuildTerrain();
 	void ShutdownTerrain();
+	void GenerateHeights();
 
 	int m_nTerrainWidth, m_nTerrainHeight;
 	int m_nVertexCount, m_nIndexCount;
@@ -57,4 +61,7 @@ private:
 	char* m_terrainFile;
 	HeightMap* m_HeightMap;
 	Model* m_Model;
+
+	vector<vector<float>> Heights;
+	
 };

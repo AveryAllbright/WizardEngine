@@ -58,4 +58,3 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 surfaceColour = diffuseTexture.Sample(basicSampler, input.uv);
 	return  float4(surfaceColour.rgb * (LightValue(light, input) + LightValue(topLight, input)), 1);
 }
-

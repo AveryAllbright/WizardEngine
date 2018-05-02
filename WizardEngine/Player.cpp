@@ -13,10 +13,10 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	m_bGrounded = true;
 	m_bJump = false;
 
-	m_fWalkSpeed = 3.f;
+	m_fWalkSpeed = 18.f;
 	m_fRunSpeed = 6.0f;
 
-	m_fJumpSpeed = .008f;
+	m_fJumpSpeed = .012f;
 
 	m_fStickToGroundForce = 9.81f;
 	m_fGravityMult = 1.f;
@@ -25,8 +25,9 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	m_nActiveSpell = 0;
 	
-	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellOneTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
 
 	D3D11_SAMPLER_DESC sd = {};
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -116,7 +117,7 @@ void Player::Update(float delt)
 	m_fMoveSpeed = m_bIsWalking ? m_fWalkSpeed : m_fRunSpeed;
 	m_Camera->SetMoveSpeed(m_fMoveSpeed);
 
-	if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
+	//if (m_vPos.y <= 0.0f) { m_vPos.y = 0.125f; m_bGrounded = true;}
 
   	if (!m_bPreviouslyGrounded && m_bGrounded)
 	{
@@ -172,7 +173,10 @@ void Player::Update(float delt)
 	}
 
 	
-	
+	if (GetAsyncKeyState('E') & 0x8000)
+	{
+		m_fGravityMult = 0;
+	}
 
 
 	m_bPreviouslyGrounded = m_bGrounded;
@@ -185,7 +189,7 @@ void Player::SpellOne()
 {
 	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.1,.1,.1), particleVS, particlePS , device, spellOneTexture)));
+	Entities.push_back((new Emitter(meshSpellOne, matSpellOne, 0, m_Camera->GetForward(), m_vPos, XMFLOAT3(.01,.01,.01), particleVS, particlePS , device, spellOneTexture)));
 	
 	
 }
@@ -194,7 +198,7 @@ void Player::SpellTwo()
 {
 	
 	XMVECTOR pos = XMLoadFloat3(&m_vPos);
-	XMVECTOR offset = XMVectorSet(0, -4, 0, 0);
+	XMVECTOR offset = XMVectorSet(0, -3.5, 0, 0);
 	XMVECTOR displace = XMLoadFloat3(&m_Camera->GetForward());
 	displace = XMVectorScale(displace, 3);
 	displace = XMVectorSetIntY(displace, 0);
@@ -205,7 +209,7 @@ void Player::SpellTwo()
 
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoTexture)));
+	Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55), particleVS, particlePS, device, spellTwoParticle)));
 
 	
 }
