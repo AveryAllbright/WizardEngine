@@ -26,6 +26,7 @@ Entity::~Entity() {
 	}
 }
 
+
 Entity* Entity::AddComponent(Component* component) {
 	components.push_back(component);
 	component->setEntity(this);

@@ -11,7 +11,7 @@ private:
 	void calcMinsMaxs();
 	Game* game;
 public:
-	//TODO this is straight hacks
+	//TODO this is straight hacks (needed to call drawBox in render)
 	void setGameRef(Game* ref);
 
 	virtual void subUpdate();
@@ -27,6 +27,7 @@ public:
 	ColliderBox* SetCenter(DirectX::XMFLOAT3 center);
 	ColliderBox* SetScale(DirectX::XMFLOAT3 scale);
 
+	//TODO autoset params based on vertex list
 	//TODO getters
 
 	bool IsColliding(ColliderBox* a_other);

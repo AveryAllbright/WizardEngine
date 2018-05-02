@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Prefabs.h"
 #include "Vertex.h"
 #include "ColliderBox.h"
 #include "WICTextureLoader.h"
@@ -71,6 +72,7 @@ Game::~Game()
 	// Materials
 	delete melonMaterial;
 	delete marbleMaterial;
+	delete marbleHitMaterial;
 	delete sandMaterial;
 
 	delete Cam;
@@ -83,6 +85,7 @@ Game::~Game()
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }
 	if (marbleTexture) { marbleTexture->Release(); marbleTexture = 0; }
+	if (marbleHitTexture) { marbleHitTexture->Release(); marbleHitTexture = 0; }
 	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
 	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
@@ -239,6 +242,7 @@ void Game::CreateMaterials() {
 
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &melonTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marble.jpg", 0, &marbleTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//marbleHit.png", 0, &marbleHitTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sand.jpg", 0, &sandDiffuse);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWall.jpg", 0, &stoneWall);
@@ -257,12 +261,11 @@ void Game::CreateMaterials() {
 
 	melonMaterial = new Material(vertexShader, pixelShader, melonTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
+	marbleHitMaterial = new Material(vertexShader, pixelShader, marbleHitTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
 }
-void Game::testHandleCollision(Collider* me, Collider* that) {
-	printf("collider colliding with collider causing collision");
-}
+
 void Game::CreateModels() {
 
 	wallMesh   = new Mesh("..//..//Assets//Models//wall.obj", device);
@@ -283,25 +286,20 @@ void Game::CreateModels() {
 	const float MODEL_VERTICAL_OFFSET = 2.5f;
 
 	for (int columnNumber = 0; columnNumber < COLUMN_COUNT; columnNumber++) {
+
+		//calculate the x and z position in the ring
 		float xPosition = (cosf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 120;
 		float zPosition = (sinf(SPACING_RADIANS * columnNumber) * RING_RADIUS) + 75;
 
+		//adjust vertical height
 		XMFLOAT3 columnPosition(xPosition, -player->playerHeight + MODEL_VERTICAL_OFFSET, zPosition);
 
-		Entity* column = new Entity(columnMesh, marbleMaterial);
-		column->SetPosition(columnPosition)
-			->SetScale(XMFLOAT3(0.01f, 0.01f, 0.01f));
+		//create the entity setting pos and scale
+		Column* column = new Column(columnMesh, marbleMaterial, marbleHitMaterial, this);
+		
+		column->SetPosition(columnPosition);
 		Entities.push_back(column);
-
-		ColliderBox* collider = new ColliderBox(columnPosition);
-		collider->onCollisionEnterFunction = &Game::testHandleCollision;
-		collider->setGameRef(this);
-		collider->SetCenter(columnPosition)->SetScale(XMFLOAT3(4, 4, 4));
-
-		column->AddComponent(collider);
 	}
-
-	
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -409,6 +407,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 
 }
+
+// Draws a wireframe box at a certain position with scale
 void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
 	//switch to wireframe
 	context->RSSetState(debugRast);
@@ -437,13 +437,9 @@ void Game::DrawBox(XMFLOAT3 position, XMFLOAT3 scale) {
 	vertexShaderDebug->SetFloat4("color", XMFLOAT4(0, 1, 0, 1));
 	vertexShaderDebug->CopyAllBufferData();
 
-	context->DrawIndexed(
-		basicGeometry.cube->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-		0,     // Offset to the first index we want to use
-		0);    // Offset to add to each index when looking up vertices
-		
+	context->DrawIndexed(basicGeometry.cube->GetIndexCount(), 0, 0);
 
-	//switch back (this may not be the best way to do this)
+	//switch back
 	context->RSSetState(0);
 }
 
@@ -465,9 +461,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-
-
-
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
@@ -478,8 +471,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
 
-
-	
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 

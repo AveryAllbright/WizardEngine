@@ -125,6 +125,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Prefabs.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="SpatialSound.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Prefabs.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="SpatialSound.h" />

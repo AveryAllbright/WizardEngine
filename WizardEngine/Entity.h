@@ -53,7 +53,7 @@ public:
 	Mesh* mesh = nullptr;
 	Material* material = nullptr;
 	DirectX::XMFLOAT3 velocity;
-private:
+protected:
 	DirectX::XMFLOAT3 m_vRotation;
 	DirectX::XMFLOAT3 m_vScale;
 	DirectX::XMFLOAT3 m_vPos;

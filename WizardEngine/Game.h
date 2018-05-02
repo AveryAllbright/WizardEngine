@@ -42,8 +42,7 @@ public:
 	void OnMouseUp(WPARAM buttonState, int x, int y);
 	void OnMouseMove(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
-
-	static void testHandleCollision(Collider* me, Collider* that);
+	
 private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders();
@@ -80,6 +79,7 @@ private:
 
 	ID3D11ShaderResourceView* melonTexture;
 	ID3D11ShaderResourceView* marbleTexture;
+	ID3D11ShaderResourceView* marbleHitTexture;
 	ID3D11ShaderResourceView* sandDiffuse;
 	ID3D11ShaderResourceView* sandNormal;
 	ID3D11ShaderResourceView* stoneWall;
@@ -95,6 +95,7 @@ private:
 
 	Material* melonMaterial;
 	Material* marbleMaterial;
+	Material* marbleHitMaterial;
 	Material* sandMaterial;
 	Material* stoneMaterial;
 
