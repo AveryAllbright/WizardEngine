@@ -73,28 +73,28 @@ Emitter::Emitter(Mesh* mesh, Material* material, int type, XMFLOAT3 velocity, XM
 
 	//set up particles
 	if (type == 0) {
-		startColor = XMFLOAT4(150.0f, 0.0f, 0.0f, 0.2f);
-		endColor = XMFLOAT4(20.0f, 0.2f, 0.0f, 0);
+		startColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.2f);
+		endColor = XMFLOAT4(10.0f, 10.2f, 10.0f, 0);
 		startVelocity = XMFLOAT3(-.01, .01, 0);
 		emitterAcceleration = XMFLOAT3(0, -.5, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
-		secondsPerParticle = .01f;
+		secondsPerParticle = .003f;
 		lifetime = .7;
 		startSize = .04;
 		endSize = .08;
 	}
 	else if (type == 1) {
-		startColor = XMFLOAT4(1, 0.1f, 0.1f, 0.2f);
-		endColor = XMFLOAT4(1, 0.6f, 0.1f, 0);
-		startVelocity = XMFLOAT3(-1, 1, 0);
+		startColor = XMFLOAT4(120, 42, 42, 0.2f);
+		endColor = XMFLOAT4(120, 42, 42, 0);
+		startVelocity = XMFLOAT3(-1, 1, -1);
 		emitterAcceleration = XMFLOAT3(0, -1, 0);
 		maxParticles = 1000;
 		particlesPerSecond = 100;
 		secondsPerParticle = .01f;
 		lifetime = .8;
-		startSize = .1;
-		endSize = .8;
+		startSize = .8;
+		endSize = 2;
 		particlePos.y = m_vPos.y + 2.5;
 		wallFinal = m_vPos;
 		wallFinal.y = m_vPos.y + 2.5;
@@ -247,6 +247,11 @@ void Emitter::SpawnParticle()
 
 	firstDeadIndex++;
 	firstDeadIndex %= maxParticles;
+
+	if (type == 1) {
+		startVelocity.x = 0 - startVelocity.x;
+		startVelocity.z = 0 - startVelocity.z;
+	}
 
 	livingParticleCount++;
 }
