@@ -11,7 +11,7 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-const float TERRAIN_MOVE[] = { 0, 0, 0};
+const float TERRAIN_MOVE[] = { 60, 0, 23};
 const float TERRAIN_SCALE[] = { .05, .05, .05 };
 
 
@@ -129,7 +129,7 @@ void Game::Init()
 	CreateMaterials();
 	CreateModels();
 
-	DirLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, 1.f);
+	DirLight.AmbientColour = XMFLOAT4(.5f, .5f, .5f, 1.f);
 	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.5f, 0.5f, 1.f);
 	DirLight.Direction     = XMFLOAT3(1.f, 0.f, 1.f);
 
@@ -445,7 +445,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	XMFLOAT4X4 m_mWorld;
 	XMMATRIX tr = XMMatrixTranslation(TERRAIN_MOVE[0], TERRAIN_MOVE[1], TERRAIN_MOVE[2]);
-	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,0,0);
+	XMMATRIX ro = XMMatrixRotationRollPitchYaw(0,-1.57,0);
 	XMMATRIX sc = XMMatrixScaling(TERRAIN_SCALE[0], TERRAIN_SCALE[1], TERRAIN_SCALE[2]);
 
 	XMStoreFloat4x4(&m_mWorld, XMMatrixTranspose(sc * ro * tr));
