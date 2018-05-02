@@ -25,10 +25,18 @@ public:
 
 private:
 
+	//struct VertexTerrain
+	//{
+	//	XMFLOAT3 m_vPosition;
+	//	XMFLOAT4 m_vColour;
+	//};
+
 	struct VertexTerrain
 	{
-		XMFLOAT3 m_vPosition;
-		XMFLOAT4 m_vColour;
+		XMFLOAT3 Position;	    // The position of the vertex
+		XMFLOAT3 Normal;		// The normal vector for the vertex
+		XMFLOAT2 UV;			// uv for the vertex
+		XMFLOAT3 Tangent;
 	};
 
 	struct HeightMap
@@ -42,6 +50,7 @@ private:
 	};
 
 	bool InitialiseBuffer(ID3D11Device*);
+	void CalculateTangents(VertexTerrain* verts, int numVerts, UINT * indices, int numIndices);
 	void ShutdownBuffer();
 	void RenderBuffers(ID3D11DeviceContext*);
 

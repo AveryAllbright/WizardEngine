@@ -4,7 +4,7 @@
 
 using namespace DirectX;
 
-Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS)
+Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader, SimpleVertexShader* particleVS, SimplePixelShader* particlePS, Material* wallSpellMaterial)
 {
 	m_Camera = a_Camera; 
 
@@ -42,7 +42,8 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
 	meshSpellOne = new Mesh("..//..//Assets//Models//sphere.obj", device);
 
-	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
+	//matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
+	matSpellTwo = wallSpellMaterial;
 	meshSpellTwo = new Mesh("..//..//Assets//Models//cube.obj", device);
 
 	entityOneSpeed = 3.5;
@@ -67,7 +68,7 @@ Player::~Player()
 	delete meshSpellTwo;
 
 	delete matSpellOne;
-	delete matSpellTwo;
+	//delete matSpellTwo;
 
 	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
 	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
