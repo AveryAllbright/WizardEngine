@@ -78,6 +78,8 @@ private:
 	ID3D11ShaderResourceView* sandNormal;
 	ID3D11ShaderResourceView* stoneWall;
 	ID3D11ShaderResourceView* stoneWallNormal;
+	ID3D11ShaderResourceView* dirtTexture;
+	ID3D11ShaderResourceView* dirtNormal;
 	ID3D11ShaderResourceView* skySRV;
 
 	ID3D11RasterizerState* skyRast;
@@ -89,6 +91,7 @@ private:
 	Material* marbleMaterial;
 	Material* sandMaterial;
 	Material* stoneMaterial;
+	Material* dirtMaterial;
 
 	Camera* Cam;
 	Player* player;
