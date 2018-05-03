@@ -60,7 +60,7 @@ SpellOne::SpellOne(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	speed = 3.5f;
 }
 
-bool SpellOne::UpdateEmitters(float delta)
+bool SpellOne::Update(float delta)
 {
 	XMVECTOR vecOne = XMLoadFloat3(&m_vPos);
 	XMVECTOR vecTwo = XMLoadFloat3(&velocity);
@@ -73,7 +73,7 @@ bool SpellOne::UpdateEmitters(float delta)
 	outdatedMatrix = true;
 
 	//base call
-	Emitter::UpdateEmitters(delta);
+	Emitter::Update(delta);
 	
 	return false;
 }
@@ -102,7 +102,7 @@ SpellTwo::SpellTwo(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	speed = 1.f;
 }
 
-bool SpellTwo::UpdateEmitters(float delta)
+bool SpellTwo::Update(float delta)
 {
 	XMVECTOR vecOne = XMLoadFloat3(&m_vPos);
 	XMVECTOR vecTwo = XMLoadFloat3(&velocity);
@@ -131,7 +131,7 @@ bool SpellTwo::UpdateEmitters(float delta)
 	}
 
 	//base call
-	Emitter::UpdateEmitters(delta);
+	Emitter::Update(delta);
 
 	return false;
 }

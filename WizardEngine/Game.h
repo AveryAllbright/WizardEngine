@@ -43,6 +43,7 @@ public:
 	void OnMouseMove(WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta, int x, int y);
 	static std::vector<Entity*> Entities;
+	static std::vector<Entity*> EntitiesTransparent;
 
 
 	// Wrappers for DirectX shaders to provide simplified functionality
@@ -80,15 +81,11 @@ private:
 	void CreateMaterials();
 	void CreateModels();
 
-	
-
 	DirectX::XMFLOAT4X4 projectionMatrix;
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
-
-	
 
 	Mesh* melonMesh;
 	Mesh* floorMesh;
@@ -115,8 +112,6 @@ private:
 	ID3D11SamplerState* sampler;
 
 
-	
-
 	Camera* Cam;
 	Player* player;
 
@@ -130,7 +125,4 @@ private:
 	ID3D11ShaderResourceView* particleTexture;
 	ID3D11DepthStencilState* particleDepthState;
 	ID3D11BlendState* particleBlendState;
-
-
-
 };

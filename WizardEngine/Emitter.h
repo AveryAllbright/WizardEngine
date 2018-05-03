@@ -35,7 +35,7 @@ public:
 	Emitter(Mesh* a_pMesh, Material* a_pMaterial, ID3D11Device* device, ID3D11ShaderResourceView* texture);
 	~Emitter();
 
-	virtual bool UpdateEmitters(float delta);
+	virtual bool Update(float delta);
 
 	virtual void SpawnParticle();
 
@@ -86,9 +86,6 @@ protected:
 	ID3D11ShaderResourceView* texture;
 
 	void updateSingleParticle(float delt, int i);
-
-	bool outdatedMatrix = false;
-
 
 };
 

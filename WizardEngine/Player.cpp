@@ -120,7 +120,7 @@ void Player::Update(float delt)
 	/*
 	for (int j = 0; j < Entities.size(); j++) 
 	{
-		Entities[j]->UpdateEmitters(delt, entityOneSpeed, wallRiseSpeed);
+		Entities[j]->Update(delt, entityOneSpeed, wallRiseSpeed);
 	}
 	*/
 	
@@ -139,12 +139,11 @@ void Player::CastSpellOne()
 	SpellOne* castedSpell = new SpellOne(game->basicGeometry.sphere, game->matSpellOne, device, game->spellOneTexture);
 	castedSpell->velocity = m_Camera->GetForward();
 
-	//TODO need to override this to set particle pos
 	castedSpell->SetPosition(m_vPos)->SetScale(XMFLOAT3(.01f, .01f, .01f));
 	castedSpell->ParticlePS = game->particlePS;
 	castedSpell->ParticleVS = game->particleVS;
 
-	Game::Entities.push_back(castedSpell);
+	Game::EntitiesTransparent.push_back(castedSpell);
 }
 
 void Player::CastSpellTwo()

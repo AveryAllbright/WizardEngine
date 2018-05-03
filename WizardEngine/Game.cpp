@@ -16,6 +16,7 @@ const float TERRAIN_MOVE[] = { 60, 0, 23 };
 const float TERRAIN_SCALE[] = { .05f, .05f, .05f };
 
  std::vector<Entity*> Game::Entities;
+ std::vector<Entity*> Game::EntitiesTransparent;
 
 // --------------------------------------------------------
 // Constructor
@@ -372,6 +373,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	for (UINT i = 0; i < Entities.size(); i++)
 		Entities[i]->Update(deltaTime);
+	for (UINT i = 0; i < EntitiesTransparent.size(); i++)
+		EntitiesTransparent[i]->Update(deltaTime);
 
 	Cam->Update(deltaTime, totalTime);
 	player->Update(deltaTime);
@@ -496,14 +499,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	ID3D11Buffer* vert;
 
-	// TopLight.DiffuseColour.x -= sin(deltaTime / 6);
-
-	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
-	pixelShader->SetSamplerState("BasicSampler", sampler);
-
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
-
 		Entities[i]->PrepareMaterial(Cam->GetViewMatrix(), Cam->GetProjectionMatrix());
 
 		Entities[i]->material->GetPixelShader()->SetSamplerState("basicSampler", sampler);
@@ -524,14 +521,12 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
 		context->IASetIndexBuffer(Entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
+		
 		context->DrawIndexed(
 			Entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
-
-
 
 	vertexShader->SetShader();
 	pixelShader->SetShader();
@@ -566,8 +561,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (UINT i = 0; i < Entities.size(); i++)
 		Entities[i]->Render();
 
-
-
 	vertexShader->SetFloat2("uvTiling", XMFLOAT2(1.0, 1.0));
 
 
@@ -592,19 +585,21 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);
-	/*
-	for (UINT i = 0; i < player->Entities.size(); i++)
-	{
-		float blend[4] = { 1,1,1,1 };
-		context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-		context->OMSetDepthStencilState(particleDepthState, 0);
+	
+	for (int i = 0; i < EntitiesTransparent.size(); i++) {
+		Emitter* test = dynamic_cast<Emitter*>(EntitiesTransparent[i]);
+		if (test) {
+			float blend[4] = { 1,1,1,1 };
+			context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+			context->OMSetDepthStencilState(particleDepthState, 0);
 
-		player->Entities[i]->Draw(context, Cam);
+			test->Draw(context, Cam);
 
-		context->OMSetBlendState(0, blend, 0xffffffff);
-		context->OMSetDepthStencilState(0, 0);
+			context->OMSetBlendState(0, blend, 0xffffffff);
+			context->OMSetDepthStencilState(0, 0);
+		}
 	}
-	*/
+
 	swapChain->Present(0, 0);
 }
 
