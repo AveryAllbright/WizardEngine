@@ -17,7 +17,7 @@ Emitter::Emitter(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11Sha
 	firstAliveIndex = 0;
 	firstDeadIndex = 0;
 	livingParticleCount = 0;
-
+	maxParticles = 1000;
 	particles = new Particle[maxParticles];
 
 	//local particle info

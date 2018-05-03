@@ -64,6 +64,7 @@ public:
 	Material* marbleHitMaterial;
 	Material* sandMaterial;
 	Material* stoneMaterial;
+	Material* dirtMaterial;
 	Material* matSpellOne;
 	Material* matSpellTwo;
 	Material* matSpellThree;
@@ -102,6 +103,8 @@ private:
 	ID3D11ShaderResourceView* sandNormal;
 	ID3D11ShaderResourceView* stoneWall;
 	ID3D11ShaderResourceView* stoneWallNormal;
+	ID3D11ShaderResourceView* dirtTexture;
+	ID3D11ShaderResourceView* dirtNormal;
 	ID3D11ShaderResourceView* skySRV;
 
 	ID3D11RasterizerState* skyRast;
@@ -110,6 +113,7 @@ private:
 	ID3D11RasterizerState* debugRast;
 
 	ID3D11SamplerState* sampler;
+
 
 	
 

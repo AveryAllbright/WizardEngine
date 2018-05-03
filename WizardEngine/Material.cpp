@@ -19,7 +19,7 @@ Material::Material(SimpleVertexShader* a_pVert, SimplePixelShader* a_pPix, ID3D1
 	m_pSamp = a_pSamp;
 	m_pSRV = a_pSrv;
 	m_hasNormal = false;
-	m_uvTiling = DirectX::XMFLOAT2(1.0f, 1.0f);
+	m_uvTiling = a_uvTiling;
 }
 
 Material::Material(SimpleVertexShader* a_pVert, SimplePixelShader* a_pPix, ID3D11ShaderResourceView* a_pSrv, ID3D11SamplerState* a_pSamp, ID3D11ShaderResourceView* a_pSrvNormal, DirectX::XMFLOAT2 a_uvTiling)
@@ -30,7 +30,7 @@ Material::Material(SimpleVertexShader* a_pVert, SimplePixelShader* a_pPix, ID3D1
 	m_pSRV = a_pSrv;
 	m_pSRVNormal = a_pSrvNormal;
 	m_hasNormal = true;
-	m_uvTiling = DirectX::XMFLOAT2(1.0f, 1.0f);
+	m_uvTiling = a_uvTiling;
 }
 
 Material::~Material()

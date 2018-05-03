@@ -52,7 +52,6 @@ SpellOne::SpellOne(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	endColor = XMFLOAT4(10.0f, 10.2f, 10.0f, 0);
 	startVelocity = XMFLOAT3(-.01f, .01f, 0);
 	emitterAcceleration = XMFLOAT3(0, 0, 0);
-	maxParticles = 1000;
 	particlesPerSecond = 100;
 	secondsPerParticle = .001f;
 	lifetime = .7f;
@@ -92,7 +91,6 @@ SpellTwo::SpellTwo(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	endColor = XMFLOAT4(120, 42, 42, 0);
 	startVelocity = XMFLOAT3(-1, 1, -1);
 	emitterAcceleration = XMFLOAT3(0, -1, 0);
-	maxParticles = 1000;
 	particlesPerSecond = 100;
 	secondsPerParticle = .01f;
 	lifetime = .8f;

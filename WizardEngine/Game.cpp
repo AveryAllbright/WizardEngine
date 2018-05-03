@@ -80,6 +80,9 @@ Game::~Game()
 	delete matSpellTwo;
 
 
+	delete stoneMaterial;
+	delete dirtMaterial;
+
 	delete Cam;
 	delete player;
 
@@ -93,6 +96,10 @@ Game::~Game()
 	if (marbleHitTexture) { marbleHitTexture->Release(); marbleHitTexture = 0; }
 	if (sandDiffuse) { sandDiffuse->Release(); sandDiffuse = 0; }
 	if (sandNormal) { sandNormal->Release(); sandNormal = 0; }
+	if (dirtTexture) { dirtTexture->Release(); dirtTexture = 0; }
+	if (dirtNormal) { dirtNormal->Release(); dirtNormal = 0; }
+	if (stoneWall) { stoneWall->Release(); stoneWall = 0; }
+	if (stoneWallNormal) { stoneWallNormal->Release(); stoneWallNormal = 0; }
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
 	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
 	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
@@ -125,7 +132,9 @@ void Game::Init()
 	LoadShaders();
 
 	Cam = new Camera(width, height);
+
 	player = new Player(Cam, device, context, this);
+
 	terrain = new Terrain();
 	bool result = terrain->InitialiseTerrain(device, "..//..//Assets//Setup.txt");
 	if (!result)
@@ -138,13 +147,13 @@ void Game::Init()
 	CreateMaterials();
 	CreateModels();
 
-	DirLight.AmbientColour = XMFLOAT4(.5f, .5f, .5f, 1.f);
-	DirLight.DiffuseColour = XMFLOAT4(.5f, 0.5f, 0.5f, 1.f);
+	DirLight.AmbientColour = XMFLOAT4(.3f, .2f, .2f, .8f);
+	DirLight.DiffuseColour = XMFLOAT4(.5f, .5f, 0.5f, 1.f);
 	DirLight.Direction = XMFLOAT3(1.f, 0.f, 1.f);
 
-	TopLight.AmbientColour = XMFLOAT4(.1f, .1f, .1f, .1f);
-	TopLight.DiffuseColour = XMFLOAT4(0.5f, 0.5f, .5f, 1.f);
-	TopLight.Direction = XMFLOAT3(0.f, 2.f, 0.f);
+	TopLight.AmbientColour = XMFLOAT4(.3f, .2f, .2f, .8f);
+	TopLight.DiffuseColour = XMFLOAT4(0.6f, 0.6f, .6f, 1.f);
+	TopLight.Direction = XMFLOAT3(0.f, -8.f, -0.4f);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -254,9 +263,14 @@ void Game::CreateMaterials() {
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//sandNormal.jpg", 0, &sandNormal);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWall.jpg", 0, &stoneWall);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//stoneWallNormal.jpg", 0, &stoneWallNormal);
+
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//fire p.jpg", 0, &spellOneTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
+
+
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirtTexture.jpg", 0, &dirtTexture);
+	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirtNormal.jpg", 0, &dirtNormal);
 
 
 	D3D11_SAMPLER_DESC sd = {};
@@ -273,9 +287,14 @@ void Game::CreateMaterials() {
 	marbleMaterial = new Material(vertexShader, pixelShader, marbleTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	marbleHitMaterial = new Material(vertexShader, pixelShader, marbleHitTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
-	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(1.0f, 1.0f));
+
+	
 	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
 	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
+
+	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(90.0f, 40.0f));
+	dirtMaterial = new Material(normalVS, normalPS, dirtTexture, sampler, dirtNormal, XMFLOAT2(1.0f, 1.0f));
+
 }
 
 void Game::CreateModels() {
@@ -368,7 +387,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 
 
-	std::cout << playerLoc.x << ' ' << playerLoc.y << ' ' << playerLoc.z << endl;
+	//std::cout << playerLoc.x << ' ' << playerLoc.y << ' ' << playerLoc.z << endl;
 	//SimpleMath::Quaternion ro(0, -1.57, 0, 0);
 	//XMVECTOR playVec = XMLoadFloat3(&playerLoc);
 	//playVec = XMVector3Rotate(playVec, ro);
@@ -399,9 +418,9 @@ void Game::Update(float deltaTime, float totalTime)
 		TruPos.z = 1;
 	}
 
-	Cam->SetPosition(XMFLOAT3(TruPos.x, TruPos.y, TruPos.z));
+	//std::cout << height << endl;
 
-	std::cout << height << endl;
+	Cam->SetPosition(XMFLOAT3(TruPos.x, TruPos.y, TruPos.z));
 
 	if (playerLoc.y < height + 1)
 	{
@@ -412,12 +431,12 @@ void Game::Update(float deltaTime, float totalTime)
 
 	else if (playerLoc.y > height + 1 && player->m_bGrounded)
 	{
-		playerLoc.y = height + 1;
+		playerLoc.y = 1 + height * TERRAIN_SCALE[1];
 		Cam->SetPosition(XMFLOAT3(TruPos.x, playerLoc.y, TruPos.z));
 
 	}
 
-
+	
 }
 
 // Draws a wireframe box at a certain position with scale
@@ -477,7 +496,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	ID3D11Buffer* vert;
 
-	TopLight.DiffuseColour.x -= sin(deltaTime / 6);
+	// TopLight.DiffuseColour.x -= sin(deltaTime / 6);
 
 	pixelShader->SetShaderResourceView("SkyTexture", skySRV);
 	pixelShader->SetSamplerState("BasicSampler", sampler);
@@ -512,6 +531,8 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
+
+
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
@@ -525,6 +546,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	vertexShader->SetMatrix4x4("world", m_mWorld);
 	vertexShader->SetMatrix4x4("view", Cam->GetViewMatrix());
 	vertexShader->SetMatrix4x4("projection", Cam->GetProjectionMatrix());
+
+	vertexShader->SetFloat2("uvTiling", XMFLOAT2(0.03f, 0.03f));
 
 	vertexShader->CopyAllBufferData();
 
@@ -542,6 +565,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (UINT i = 0; i < Entities.size(); i++)
 		Entities[i]->Render();
+
+
+
+	vertexShader->SetFloat2("uvTiling", XMFLOAT2(1.0, 1.0));
 
 
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();

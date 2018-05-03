@@ -26,10 +26,12 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	m_nActiveSpell = 0;
 
+
 	playerHeight = 2.5f;
 	this->device = device;
 	game = ref;
 }
+
 
 Player::~Player(){}
 
