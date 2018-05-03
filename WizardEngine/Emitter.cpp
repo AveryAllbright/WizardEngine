@@ -98,7 +98,7 @@ bool Emitter::Update(float delt)
 		timeSinceEmitt -= secondsPerParticle;
 	}
 
-
+	Entity::Update(delt);
 	return false;
 }
 
@@ -179,14 +179,14 @@ void Emitter::Draw(ID3D11DeviceContext * context, Camera * camera)
 	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	ParticleVS->SetMatrix4x4("view", camera->GetViewMatrix());
-	ParticleVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-	ParticleVS->SetShader();
-	ParticleVS->CopyAllBufferData();
+	particleVS->SetMatrix4x4("view", camera->GetViewMatrix());
+	particleVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	particleVS->SetShader();
+	particleVS->CopyAllBufferData();
 
-	ParticlePS->SetShaderResourceView("particle", texture);
-	ParticlePS->SetShader();
-	ParticlePS->CopyAllBufferData();
+	particlePS->SetShaderResourceView("particle", texture);
+	particlePS->SetShader();
+	particlePS->CopyAllBufferData();
 
 	if (firstAliveIndex < firstDeadIndex) {
 		context->DrawIndexed(livingParticleCount * 6, firstAliveIndex * 6, 0);

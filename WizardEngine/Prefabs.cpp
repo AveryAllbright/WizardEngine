@@ -12,7 +12,7 @@ Column::Column(Mesh * mesh, Material * mainMaterial, Material* damageMaterial, G
 	ColliderBox* collider = new ColliderBox(this->m_vPos);
 
 	//TODO: temporary function that is called on collision
-	collider->onCollisionEnterFunction = &Column::testHandleCollision;
+	collider->onTriggerEnterFunction = &Column::testHandleCollision;
 	collider->setGameRef(game);
 
 	//set collider pos and scale
@@ -44,7 +44,7 @@ Entity * Column::SetPosition(DirectX::XMFLOAT3 a_vPos)
 #pragma endregion
 
 
-SpellOne::SpellOne(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11ShaderResourceView* texture) 
+SpellOne::SpellOne(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11ShaderResourceView* texture, Game* game) 
 	: Emitter(mesh, material, device, texture)
 {
 	//setup particles
@@ -58,6 +58,19 @@ SpellOne::SpellOne(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	startSize = .04f;
 	endSize = .08f;
 	speed = 3.5f;
+
+
+	//create a box collider component
+	ColliderBox* collider = new ColliderBox(this->m_vPos);
+
+	collider->setGameRef(game);
+	//collider->visible = false;
+
+
+	//set collider pos and scale
+	collider->SetCenter(this->m_vPos)->SetScale(XMFLOAT3(4, 4, 4));
+
+	this->AddComponent(collider);
 }
 
 bool SpellOne::Update(float delta)

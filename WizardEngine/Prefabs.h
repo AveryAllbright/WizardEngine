@@ -15,7 +15,7 @@ public:
 
 class SpellOne : public Emitter {
 public:
-	SpellOne(Mesh*, Material*, ID3D11Device* device, ID3D11ShaderResourceView* texture);
+	SpellOne(Mesh*, Material*, ID3D11Device* device, ID3D11ShaderResourceView* texture, Game* game);
 	virtual bool Update(float delta);
 
 };

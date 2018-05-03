@@ -31,12 +31,11 @@ class Emitter :
 	public Entity
 {
 public:
-	//TODO: temp
 	Emitter(Mesh* a_pMesh, Material* a_pMaterial, ID3D11Device* device, ID3D11ShaderResourceView* texture);
 	~Emitter();
 
+	// Both virtual because the spells have different implementations
 	virtual bool Update(float delta);
-
 	virtual void SpawnParticle();
 
 	void CopyParticlesToGPU(ID3D11DeviceContext* context);
@@ -47,21 +46,17 @@ public:
 
 	void Draw(ID3D11DeviceContext* context, Camera* camera);
 
-	SimpleVertexShader* ParticleVS;
-	SimplePixelShader* ParticlePS;
+	SimpleVertexShader* particleVS;
+	SimplePixelShader* particlePS;
 
 	DirectX::XMFLOAT3 particlePos;
 	DirectX::XMFLOAT3 wallFinal;
 protected:
-	
-
 	// emitters
 	DirectX::XMFLOAT4 startColor;
 	DirectX::XMFLOAT4 endColor;
 	DirectX::XMFLOAT3 startVelocity;
 	DirectX::XMFLOAT3 emitterAcceleration;
-
-
 	
 	int maxParticles;
 	int particlesPerSecond;
@@ -80,14 +75,11 @@ protected:
 	Particle* particles;
 	ParticleVertex* localVertices;
 
-
-
 	ID3D11Buffer* vertexBuffer;
 	ID3D11Buffer* indexBuffer;
 
 	ID3D11ShaderResourceView* texture;
 
 	void updateSingleParticle(float delt, int i);
-
 };
 

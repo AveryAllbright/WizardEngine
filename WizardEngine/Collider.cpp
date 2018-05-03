@@ -93,7 +93,7 @@ void Collider::Update(float deltaTime) {
 		//if (!singleCollid->getGameObject()->active) continue;
 		testCollision(singleCollid);
 	}
-
+	Component::Update(deltaTime);
 }
 
 void Collider::Render() {}

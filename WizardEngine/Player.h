@@ -31,7 +31,6 @@ private:
 
 	bool m_Jumping;
 	
-
 	float m_fMoveSpeed;
 
 	int m_nActiveSpell;
@@ -40,8 +39,6 @@ private:
 	float cooldown;
 
 	bool m_Casting;
-
-	DirectX::XMFLOAT4X4 world;
 
 	ID3D11Device* device;
 public:

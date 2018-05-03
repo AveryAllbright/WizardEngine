@@ -3,7 +3,7 @@
 #include "Game.h"
 
 class ColliderBox : public Collider {
-private:
+protected:
 	DirectX::XMFLOAT3 center;
 	DirectX::XMFLOAT3 scale;
 	DirectX::XMFLOAT3 mins;
@@ -16,6 +16,7 @@ public:
 
 	virtual void subUpdate();
 	virtual void testCollision(Collider* other);
+	virtual void Update(float delta);
 	virtual void Render();
 
 	bool colliding = false;

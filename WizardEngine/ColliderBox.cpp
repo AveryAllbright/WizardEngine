@@ -71,6 +71,12 @@ bool ColliderBox::IsColliding(ColliderBox * other)
 	return true;
 }
 
+void ColliderBox::Update(float delta) {
+	SetCenter(entity->GetPosition());
+	Collider::Update(delta);
+}
+
 void ColliderBox::Render() {
+	if (!visible) return;
 	game->DrawBox(center, scale);
 }

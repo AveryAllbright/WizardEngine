@@ -26,7 +26,6 @@ Player::Player(Camera* a_Camera, ID3D11Device* device, ID3D11DeviceContext* cont
 	cooldown = 0;
 	m_nActiveSpell = 0;
 
-
 	playerHeight = 2.5f;
 	this->device = device;
 	game = ref;
@@ -117,12 +116,6 @@ void Player::Update(float delt)
 		m_Camera->SetPosition(temp);
 		
 	}
-	/*
-	for (int j = 0; j < Entities.size(); j++) 
-	{
-		Entities[j]->Update(delt, entityOneSpeed, wallRiseSpeed);
-	}
-	*/
 	
 	if (GetAsyncKeyState('E') & 0x8000)
 	{
@@ -135,13 +128,12 @@ void Player::Update(float delt)
 
 void Player::CastSpellOne()
 {
-	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	SpellOne* castedSpell = new SpellOne(game->basicGeometry.sphere, game->matSpellOne, device, game->spellOneTexture);
+	SpellOne* castedSpell = new SpellOne(game->basicGeometry.sphere, game->matSpellOne, device, game->spellOneTexture, game);
 	castedSpell->velocity = m_Camera->GetForward();
 
 	castedSpell->SetPosition(m_vPos)->SetScale(XMFLOAT3(.01f, .01f, .01f));
-	castedSpell->ParticlePS = game->particlePS;
-	castedSpell->ParticleVS = game->particleVS;
+	castedSpell->particlePS = game->particlePS;
+	castedSpell->particleVS = game->particleVS;
 
 	Game::EntitiesTransparent.push_back(castedSpell);
 	Game::Entities.push_back(castedSpell);
@@ -158,22 +150,17 @@ void Player::CastSpellTwo()
 	pos = XMVectorAdd(pos, displace);
 	XMFLOAT3 offsetby;
 	XMStoreFloat3(&offsetby, pos);
-	
-	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
 
-	SpellTwo* castedSpell = new SpellTwo(game->basicGeometry.cube, game->matSpellTwo, device, game->spellTwoParticle);
+	SpellTwo* castedSpell = new SpellTwo(game->basicGeometry.cube, game->dirtMaterial, device, game->spellTwoParticle);
 	castedSpell->velocity = XMFLOAT3(0, 1, 0);
-	
-
 
 	castedSpell->SetPosition(offsetby)->SetScale(XMFLOAT3(2, 5, .55f));
 	castedSpell->particlePos.y = offsetby.y + 2.5f;
 	castedSpell->wallFinal = offsetby;
 	castedSpell->wallFinal.y = offsetby.y + 2.5f;
 
-
-	castedSpell->ParticlePS = game->particlePS;
-	castedSpell->ParticleVS = game->particleVS;
+	castedSpell->particlePS = game->particlePS;
+	castedSpell->particleVS = game->particleVS;
 	Game::EntitiesTransparent.push_back(castedSpell);
 	Game::Entities.push_back(castedSpell);
 }

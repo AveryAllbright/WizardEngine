@@ -71,6 +71,12 @@ Game::~Game()
 	delete melonMesh;
 	delete columnMesh;
 	delete floorMesh;
+	delete basicGeometry.cone;
+	delete basicGeometry.cube;
+	delete basicGeometry.cylinder;
+	delete basicGeometry.helix;
+	delete basicGeometry.sphere;
+	delete basicGeometry.torus;
 
 	// Materials
 	delete melonMaterial;
@@ -79,8 +85,6 @@ Game::~Game()
 	delete sandMaterial;
 	delete matSpellOne;
 	delete matSpellTwo;
-
-
 	delete stoneMaterial;
 	delete dirtMaterial;
 
@@ -90,6 +94,7 @@ Game::~Game()
 	skySRV->Release();
 	skyDepth->Release();
 	skyRast->Release();
+	debugRast->Release();
 
 	if (sampler) { sampler->Release(); sampler = 0; }
 	if (melonTexture) { melonTexture->Release(); melonTexture = 0; }
@@ -104,19 +109,21 @@ Game::~Game()
 	if (terrain) { terrain->ShutDown(); delete terrain; terrain = 0; }
 	if (spellOneTexture) { spellOneTexture->Release(); spellOneTexture = 0; }
 	if (spellTwoTexture) { spellTwoTexture->Release(); spellTwoTexture = 0; }
-
-
-	delete basicGeometry.cone;
-	delete basicGeometry.cube;
-	delete basicGeometry.cylinder;
-	delete basicGeometry.helix;
-	delete basicGeometry.sphere;
-	delete basicGeometry.torus;
+	if (particleBlendState) { particleBlendState->Release(); }
+	if (particleDepthState) { particleDepthState->Release(); }
 
 	for (UINT i = 0; i < Entities.size(); i++)
 	{
 		delete Entities[i];
 		Entities[i] = 0;
+	}
+	//This shouldn't be neccessary as things here should also be in entities
+	for (UINT i = 0; i < EntitiesTransparent.size(); i++)
+	{
+		if (Entities[i]) {
+			delete EntitiesTransparent[i];
+			EntitiesTransparent[i] = 0;
+		}
 	}
 }
 
@@ -126,7 +133,6 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -269,7 +275,6 @@ void Game::CreateMaterials() {
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//melon.tif", 0, &spellTwoTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirt.jpg", 0, &spellTwoParticle);
 
-
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirtTexture.jpg", 0, &dirtTexture);
 	CreateWICTextureFromFile(device, context, L"..//..//Assets//Textures//dirtNormal.jpg", 0, &dirtNormal);
 
@@ -289,13 +294,11 @@ void Game::CreateMaterials() {
 	marbleHitMaterial = new Material(vertexShader, pixelShader, marbleHitTexture, sampler, XMFLOAT2(1.0f, 1.0f));
 	sandMaterial = new Material(normalVS, normalPS, sandDiffuse, sampler, sandNormal, XMFLOAT2(1.0f, 1.0f));
 
-	
 	matSpellOne = new Material(vertexShader, pixelShader, spellOneTexture, sampler);
 	matSpellTwo = new Material(vertexShader, pixelShader, spellTwoTexture, sampler);
 
 	stoneMaterial = new Material(normalVS, normalPS, stoneWall, sampler, stoneWallNormal, XMFLOAT2(90.0f, 40.0f));
 	dirtMaterial = new Material(normalVS, normalPS, dirtTexture, sampler, dirtNormal, XMFLOAT2(1.0f, 1.0f));
-
 }
 
 void Game::CreateModels() {
@@ -342,8 +345,6 @@ void Game::CreateModels() {
 		case 1: wall->SetPosition(XMFLOAT3(170, -20, 75))->SetScale(XMFLOAT3(4, 4, 4)); break;
 		case 2: wall->SetPosition(XMFLOAT3(120, -20, 127))->SetRotation(XMFLOAT3(0, 1.57f, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
 		case 3: wall->SetPosition(XMFLOAT3(120, -20, 25))->SetRotation(XMFLOAT3(0, 1.57f, 0))->SetScale(XMFLOAT3(4, 4, 4)); break; //Set
-
-
 		}
 		Entities.push_back(wall);
 	}
@@ -506,28 +507,19 @@ void Game::Draw(float deltaTime, float totalTime)
 		Entities[i]->material->GetPixelShader()->SetSamplerState("basicSampler", sampler);
 		Entities[i]->material->GetPixelShader()->SetShaderResourceView("diffuseTexture", Entities[i]->material->GetSRV());
 		Entities[i]->material->GetPixelShader()->SetShaderResourceView("normalTexture", Entities[i]->material->GetSRVNormal());
-
-
 		Entities[i]->material->GetPixelShader()->SetData("topLight", &TopLight, sizeof(DirectionalLight));
-
 		Entities[i]->material->GetPixelShader()->SetData("light", &DirLight, sizeof(DirectionalLight));
 
 		Entities[i]->material->GetPixelShader()->CopyAllBufferData();
-
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
 
 		vert = Entities[i]->mesh->GetVertexBuffer();
 
 		context->IASetVertexBuffers(0, 1, &vert, &stride, &offset);
 		context->IASetIndexBuffer(Entities[i]->mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 		
-		context->DrawIndexed(
-			Entities[i]->mesh->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-			0,     // Offset to the first index we want to use
-			0);    // Offset to add to each index when looking up vertices
+		context->DrawIndexed(Entities[i]->mesh->GetIndexCount(), 0, 0);
 	}
-
+#pragma region Terrain
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 
@@ -557,13 +549,16 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	terrain->Render(context);
 	context->DrawIndexed(terrain->GetIndexCount(), 0, 0);
+#pragma endregion
 
+
+	//propagates to components (wireframe boxes)
 	for (UINT i = 0; i < Entities.size(); i++)
 		Entities[i]->Render();
 
+#pragma region SkyBox
 	vertexShader->SetFloat2("uvTiling", XMFLOAT2(1.0, 1.0));
-
-
+	
 	ID3D11Buffer* skyVB = basicGeometry.cube->GetVertexBuffer();
 	ID3D11Buffer* skyIB = basicGeometry.cube->GetIndexBuffer();
 
@@ -585,7 +580,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	context->RSSetState(0);
 	context->OMGetDepthStencilState(0, 0);
-	
+#pragma endregion
+
+#pragma region Transparent/Blending
 	for (int i = 0; i < EntitiesTransparent.size(); i++) {
 		Emitter* test = dynamic_cast<Emitter*>(EntitiesTransparent[i]);
 		if (test) {
@@ -599,7 +596,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			context->OMSetDepthStencilState(0, 0);
 		}
 	}
-
+#pragma endregion
 	swapChain->Present(0, 0);
 }
 

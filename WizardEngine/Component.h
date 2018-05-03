@@ -13,7 +13,7 @@ public:
 	virtual void Start();
 	virtual void Update(float deltaTime);
 	virtual void Render();
-
-private:
+	bool visible = true;
+protected:
 	Entity* entity;
 };
