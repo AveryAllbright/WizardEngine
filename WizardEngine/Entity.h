@@ -23,7 +23,7 @@ public:
 	virtual Entity* SetRotation(DirectX::XMFLOAT3 a_vRotation);
 	virtual Entity* SetScale(DirectX::XMFLOAT3 a_vScale);
 
-	virtual void PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj);
+	virtual void PrepareMaterial(DirectX::XMFLOAT4X4 a_view, DirectX::XMFLOAT4X4 a_proj, DirectX::XMFLOAT4X4 a_dirLightView, DirectX::XMFLOAT4X4 a_dirLightProj);
 
 	void Move(DirectX::XMFLOAT3 a_vDisplaceBy);
 	void MoveForward(float a_fDisplaceBy);

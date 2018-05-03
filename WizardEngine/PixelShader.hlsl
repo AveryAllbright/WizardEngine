@@ -14,6 +14,7 @@ struct VertexToPixel
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
+	float4 shadowPos    : SHADOWPOS;
 };
 
 struct DirectionalLight
@@ -24,7 +25,9 @@ struct DirectionalLight
 };
 
 Texture2D diffuseTexture	: register(t0);
+Texture2D shadowTexture : register(t2);
 SamplerState basicSampler	: register(s0);
+SamplerComparisonState shadowSampler : register(s1);
 
 
 cbuffer externalData : register(b1)
@@ -55,6 +58,18 @@ float4 LightValue(DirectionalLight newLight, VertexToPixel input)
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+	/* Shadow Stuff Start*/
+	float2 shadowUV = input.shadowPos.xy / input.shadowPos.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y;
+
+	float lightDepth = input.shadowPos.z / input.shadowPos.w;
+
+	float shadowAmount = shadowTexture.SampleCmpLevelZero(shadowSampler, shadowUV, lightDepth);
+	/* Shadow Stuff End*/
+
 	float4 surfaceColour = diffuseTexture.Sample(basicSampler, input.uv);
-	return  float4(surfaceColour.rgb * (LightValue(light, input) + LightValue(topLight, input)), 1);
+
+	float4 finalLight = LightValue(light, input) + LightValue(topLight, input);
+
+	return surfaceColour * (float4(0.35f, 0.3f, 0.3f, 1) + float4(finalLight * shadowAmount));
 }

@@ -147,7 +147,6 @@ void Emitter::CopyParticlesToGPU(ID3D11DeviceContext * context)
 
 	context->Unmap(vertexBuffer, 0);
 
-
 }
 
 void Emitter::CopyOneParticle(int index)

@@ -54,6 +54,7 @@ void ColliderBox::testCollision(Collider * other)
 	callCallbacks(IsColliding(castedOther), other);
 }
 
+
 bool ColliderBox::IsColliding(ColliderBox * other)
 {
 	// test x

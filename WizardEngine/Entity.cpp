@@ -106,7 +106,7 @@ Entity* Entity::SetScale(XMFLOAT3 a_vScale)
 }
 #pragma endregion
 
-void Entity::PrepareMaterial(XMFLOAT4X4 a_view, XMFLOAT4X4 a_proj)
+void Entity::PrepareMaterial(XMFLOAT4X4 a_view, XMFLOAT4X4 a_proj, XMFLOAT4X4 a_dirLightView, XMFLOAT4X4 a_dirLightProj)
 {
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET
@@ -125,6 +125,8 @@ void Entity::PrepareMaterial(XMFLOAT4X4 a_view, XMFLOAT4X4 a_proj)
 	vertexShader->SetMatrix4x4("world", GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", a_view);
 	vertexShader->SetMatrix4x4("projection", a_proj);
+	vertexShader->SetMatrix4x4("lightView", a_dirLightView);
+	vertexShader->SetMatrix4x4("lightProjection", a_dirLightProj);
 	vertexShader->SetFloat2("uvTiling", material->m_uvTiling);
 
 	// Once you've set all of the data you care to change for

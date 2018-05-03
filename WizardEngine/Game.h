@@ -35,6 +35,7 @@ public:
 	void OnResize();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
+	void RenderShadowMap();
 	void DrawBox(XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT4 color = XMFLOAT4(0, 1, 0, 1));
 
 	// Overridden mouse input helper methods
@@ -68,7 +69,6 @@ public:
 	Material* dirtMaterial;
 	Material* matSpellOne;
 	Material* matSpellTwo;
-	Material* matSpellThree;
 
 
 	ID3D11ShaderResourceView* spellOneTexture;
@@ -111,6 +111,15 @@ private:
 
 	ID3D11SamplerState* sampler;
 
+	// For shadow map
+	int shadowMapSize;
+	ID3D11DepthStencilView* shadowDSV;
+	ID3D11ShaderResourceView* shadowSRV;
+	ID3D11SamplerState* shadowSamplerState;
+	ID3D11RasterizerState* shadowRasterizer;
+	SimpleVertexShader* shadowVS;
+	DirectX::XMFLOAT4X4 dirLightProjection;
+	DirectX::XMFLOAT4X4 dirLightView;
 
 	Camera* Cam;
 	Player* player;
