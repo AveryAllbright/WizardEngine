@@ -49,9 +49,11 @@ public:
 
 	SimpleVertexShader* ParticleVS;
 	SimplePixelShader* ParticlePS;
-protected:
+
 	DirectX::XMFLOAT3 particlePos;
 	DirectX::XMFLOAT3 wallFinal;
+protected:
+	
 
 	// emitters
 	DirectX::XMFLOAT4 startColor;

@@ -83,6 +83,7 @@ void SpellTwo::SpawnParticle() {
 	startVelocity.z = 0 - startVelocity.z;
 }
 
+
 SpellTwo::SpellTwo(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11ShaderResourceView* texture) 
 	: Emitter(mesh, material, device, texture)
 {
@@ -96,9 +97,6 @@ SpellTwo::SpellTwo(Mesh* mesh, Material* material, ID3D11Device* device, ID3D11S
 	lifetime = .8f;
 	startSize = .8f;
 	endSize = 2;
-	particlePos.y = m_vPos.y + 2.5f;
-	wallFinal = m_vPos;
-	wallFinal.y = m_vPos.y + 2.5f;
 	speed = 1.f;
 }
 
@@ -117,7 +115,6 @@ bool SpellTwo::Update(float delta)
 	vecTwo = DirectX::XMVectorScale(vecTwo, delta * speed);
 
 	vecFinal = XMVectorAdd(vecOne, -vecTwo);
-	temp;
 	XMStoreFloat3(&temp, vecFinal);
 	particlePos = temp;
 

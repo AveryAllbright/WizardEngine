@@ -144,6 +144,7 @@ void Player::CastSpellOne()
 	castedSpell->ParticleVS = game->particleVS;
 
 	Game::EntitiesTransparent.push_back(castedSpell);
+	Game::Entities.push_back(castedSpell);
 }
 
 void Player::CastSpellTwo()
@@ -157,10 +158,24 @@ void Player::CastSpellTwo()
 	pos = XMVectorAdd(pos, displace);
 	XMFLOAT3 offsetby;
 	XMStoreFloat3(&offsetby, pos);
-
+	
 	XMStoreFloat4x4(&world, XMMatrixTranspose(XMMatrixIdentity()));
-	//Game::Entities.push_back(new SpellTwo());
-	//Entities.push_back((new Emitter(meshSpellTwo, matSpellTwo, 1, XMFLOAT3(0, wallRiseSpeed, 0), offsetby, XMFLOAT3(2, 5, .55f), particleVS, particlePS, device, spellTwoParticle)));
+
+	SpellTwo* castedSpell = new SpellTwo(game->basicGeometry.cube, game->matSpellTwo, device, game->spellTwoParticle);
+	castedSpell->velocity = XMFLOAT3(0, 1, 0);
+	
+
+
+	castedSpell->SetPosition(offsetby)->SetScale(XMFLOAT3(2, 5, .55f));
+	castedSpell->particlePos.y = offsetby.y + 2.5f;
+	castedSpell->wallFinal = offsetby;
+	castedSpell->wallFinal.y = offsetby.y + 2.5f;
+
+
+	castedSpell->ParticlePS = game->particlePS;
+	castedSpell->ParticleVS = game->particleVS;
+	Game::EntitiesTransparent.push_back(castedSpell);
+	Game::Entities.push_back(castedSpell);
 }
 
 void Player::SetActiveSpell(float input)
